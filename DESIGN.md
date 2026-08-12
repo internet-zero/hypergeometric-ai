@@ -201,15 +201,17 @@ Directive types drive probe design downstream:
 
 **Notes.** Not all prompt content is rule-like — personas, background context, worked examples. These parse into `style`/context blocks and are handled by judge-scored probes or carried as-is; the decomposition does not force everything to be a rule. Milestone 0 uses hand-decomposition; automated parsing quality is an open question ([open questions](#214-open-questions)).
 
-#### 1b — Static pass (no model calls)
+#### 1b — Static pass (detection only, no model calls, no edits)
 
 **Purpose:** catch everything that pure reading can catch — cheaply, before any model is invoked — and, critically, write down what the incumbent model knows that the config never said.
 
+**This pass changes nothing.** It emits flags and metadata; every actual edit (merging duplicates, deleting rules, rewriting) happens in TRANSFORM, evidence-backed. The pass exists because MEASURE's *experiment design* depends on its flags — it is not optimization, and optimization must not happen here.
+
 Three analyses:
 
-**(a) Redundancy / contradiction detection.** Embed all directives; flag near-duplicate pairs (merge candidates) and semantically opposed pairs (conflicts that have been resolved so far only by the incumbent model's mood).
+**(a) Redundancy / contradiction detection.** Embed all directives; flag near-duplicate pairs and semantically opposed pairs (conflicts that have been resolved so far only by the incumbent model's mood). **Why this cannot wait until the end — twin masking:** if R2 lives in the system prompt and a near-twin sits in the tool description, ablating R2 alone leaves the twin covering for it → "complies without the rule" → false cell-① *delete* verdict; the twin gets the same false verdict; an evidence-driven TRANSFORM then deletes both and the behavior is lost, with every number looking rigorous. Duplicates are backups that mask each other's contribution. The fix requires knowing the twins *before* the experiment: MEASURE ablates the **equivalence class together**, and flagged conflict pairs are measured jointly. Detection early, editing late.
 
-**(b) Style lint.** Check directives against the accumulated per-model pattern base ([knowledge base](#210-the-knowledge-base)): "Model B follows numbered constraints better than prose"; "Model B weighs tool descriptions over mid-prompt text."
+**(b) Style lint (advisory, deferable).** Check directives against the accumulated per-model pattern base ([knowledge base](#210-the-knowledge-base)): "Model B follows numbered constraints better than prose"; "Model B weighs tool descriptions over mid-prompt text." Unlike (a) and (c), this part carries no experimental-design weight — it only warm-starts repairs, and may equally run lazily at repair time (3a).
 
 **(c) Implicit-contract extraction.** Mine the incumbent's production traces for stable behavioral regularities that **no directive mandates**, and promote them to explicit directives *before* migration.
 
@@ -261,7 +263,7 @@ The scenario set is the durable asset of the whole system: built once per direct
 
 The heart of the system, and a callable service (§2.1). For each directive, measure what it actually *does* — on each model — by running its probes with the directive present and absent, and comparing.
 
-**The four-way run.** Per directive: probes run with directive present / replaced × incumbent / candidate model, same probes paired across models, k ≥ 3 repeats per probe (compliance is a rate, not a boolean). Every run uses the **full config** — the only variable between compared runs is the one directive under test.
+**The four-way run.** Per directive: probes run with directive present / replaced × incumbent / candidate model, same probes paired across models, k ≥ 3 repeats per probe (compliance is a rate, not a boolean). Every run uses the **full config** — the only variable between compared runs is the one directive under test. **Exception:** near-duplicate directives flagged in 1b are ablated as an equivalence class (all twins out together), and flagged conflict pairs are additionally measured jointly — ablating one twin while another remains would mask its contribution and produce false *delete* verdicts.
 
 **Placebo control.** "Removed" replaces the directive with same-length neutral filler — not deletion — otherwise measured deltas are confounded with prompt-length and position shifts ([threats](#212-assumptions-and-threats-to-validity), threat 1).
 
