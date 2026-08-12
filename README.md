@@ -1,33 +1,38 @@
 # Hypergeometric
 
-**Statistical certification and porting of agent configs across models — no eval suite required.**
+**Safely move an AI agent from one model to another — and prove nothing broke.**
 
-Agent configs (system prompts, MCP tool descriptions, skills) are written once, by hand, tuned to whichever model was current that day — then frozen while models change every month. Nobody can answer three questions for a given agent:
+## The problem
 
-- **Fit** — is this config well-matched to the model it runs on right now?
-- **Diff** — if the model is swapped, what exactly changes in behavior?
-- **Port** — what edits would make the config fit the new model?
+Every AI agent runs on two things: a model, and a set of written instructions (its system prompt, tool descriptions, and skills). Those instructions were written once, by hand, tuned to whatever model was current at the time — and then frozen, while new models keep shipping every month.
 
-The standard answer — "run your eval suite" — fails because most production agents have no eval suite. Hypergeometric answers all three without one.
+So when a better or cheaper model comes out, teams face a bad choice:
 
-## How
+- **Don't switch** — and keep paying more for less capability
+- **Switch blind** — and hope nothing silently breaks
 
-The core insight: **the config is the spec.** Every rule in a prompt is a testable claim about behavior ("always respond in JSON", "never export without an ID filter"). Checking whether a model follows its own instructions needs no ground truth — verification is generated from the config itself.
+Nobody can say which instructions still work on the new model, which ones the new model ignores, or which ones it never needed in the first place. The usual fix — "test it against your eval suite" — doesn't help, because most agents don't have one.
 
-```
-config ──► 1 PARSE ──► 2 STATIC PASS ──► 3 PROBE SYNTHESIS ──► 4 MEASURE
-                                                                   │
-   audit ledger + report ◄── 7 CERTIFY ◄── 6 ASSEMBLE ◄── 5 REPAIR ◄┘
-```
+## What this project does
 
-Decompose the config into atomic rules; probe each rule with generated scenarios, with and without the rule, on both models; sort every rule into *delete / keep / rewrite / fix*; repair broken rules through a generate–filter–measure funnel; reassemble; ship a report where every claim is a count with a confidence bound, plus a clause-level change ledger.
+Hypergeometric checks an agent's instructions against any model directly, using a simple observation: **every instruction already says what correct behavior looks like.** "Always respond in JSON" — either the output is JSON or it isn't. "Never export data without a filter" — either the filter is there or it isn't. No answer key needed; the instructions are the answer key.
 
-> **The name:** the hypergeometric distribution governs sampling without replacement from a finite population — the math used when certifying against a finite archive of production traces. Its infinite-population sibling, the binomial, covers generated-scenario testing. The name is a commitment: no claim ships without its distribution.
+So the system:
 
-## Details
+1. Splits the instructions into individual rules
+2. Watches how each model actually behaves with and without each rule, across many varied situations
+3. Sorts every rule into **delete** (the new model doesn't need it), **keep** (it's working), or **rewrite** (the new model ignores it)
+4. Fixes the broken rules and re-checks them
+5. Produces a report where every claim is backed by counted results — plus a full change log of what was edited and why
 
-The full design — pipeline stages, statistics, assumptions and threats to validity, roadmap — lives in **[DESIGN.md](DESIGN.md)**.
+The outcome: a migration that's measured instead of guessed, with receipts.
+
+> **The name** comes from the hypergeometric distribution — a piece of statistics used when checking a sample and drawing conclusions about the whole. It reflects the project's rule: no claim without the math to back it.
+
+## More
+
+The full technical design lives in **[DESIGN.md](DESIGN.md)**.
 
 ## Status
 
-Design phase. Next milestone: Phase 0 — hand-decompose one real prompt, run the ablation grid on ~5 rules across two models, and test the method's own reliability along the way.
+Design phase. Next milestone: a hand-run proof on one real agent across two models.
