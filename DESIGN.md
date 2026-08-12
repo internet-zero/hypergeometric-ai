@@ -21,6 +21,7 @@ This document is the full design: the problem, the core insight, the seven-stage
 11. [Scope](#11-scope)
 12. [Roadmap](#12-roadmap)
 13. [Open questions](#13-open-questions)
+14. [Glossary](#14-glossary)
 
 ---
 
@@ -162,6 +163,8 @@ You are an inventory analyst assistant.
 ```
 
 ## 5. Pipeline stages in detail
+
+(The stages below are the operational grain of the three phases in §3.1: REPRESENT = stages 1–3, MEASURE = stage 4, TRANSFORM & CERTIFY = stages 5–7.)
 
 ### Stage 1 — Parse
 
@@ -461,6 +464,17 @@ The design composes five proven ideas; the composition — on this artifact clas
 - **GEPA / measured prompt optimization** — reflective rewriting gated on execution scores; Pareto archives that keep "specialist" candidates alive.
 - **ACE** — itemized, delta-updated contexts; the reason repair edits one directive at a time instead of rewriting the config wholesale (bounded blast radius; no context collapse).
 
+### 8.1 Landscape and positioning
+
+The category is validated but unclaimed (as of mid-2026):
+
+- **Direct:** Narrow AI (automated prompt migration, closest pitch); AWS Bedrock Prompt Optimization / Model Agility (real, but one-directional — migration *onto* Bedrock — and prompt-only); the labs' own migration guides and metaprompts (onboarding tools for their own models, not neutral certifiers).
+- **Adjacent heavyweight:** Databricks Agent Bricks — auto-optimized agents with model flexing, but platform-locked, eval-harness-driven, and a build-here play rather than certify-what-you-have.
+- **Adjacent:** eval/observability platforms (Braintrust, LangSmith, Langfuse, promptfoo…) offer side-by-side model comparison but measure without porting, and presuppose customer-supplied evals — the dependency this design removes. Model routers (Martian, Not Diamond, OpenRouter) dodge migration rather than solve it: routing still runs an old-model-tuned config on whatever model is picked.
+- **Research state:** model end-of-life migration and Continual Prompt Optimization are freshly formalized; the standing finding — prompt adaptation drives most switch-time improvement, but *blind* automatic rewriting is not reliably effective — is precisely the gap stage 5's measured funnel addresses.
+
+Unclaimed by anyone: eval-free operation (config-as-spec), directive-level decomposition with ablation verdicts, statistical certification (a p-value shipped with every prompt change), clause-level audit ledgers, coverage of MCP tool descriptions and skills (the market fixates on "the prompt"), and vendor-neutral any-direction migration.
+
 ## 9. Assumptions and threats to validity
 
 Honest inventory. None known-fatal; all measurable; the Phase-0 experiment (§12) tests the first three nearly for free.
@@ -516,3 +530,25 @@ These accumulate into per-model behavioral profiles that (a) power the stage-2 l
 - **Trace privacy:** minimum viable redaction for running stages 2–3 on customer traces in-VPC.
 - **External validity:** over months, do probe-certified repairs measurably reduce failure rates in production traces? (The ultimate test; the append-only `RUN` store exists so this can be answered later.)
 - **Proxy failure modes:** when does compliance parity fail as a proxy — migrations where the config was followed on both models but outcome quality still shifted?
+
+## 14. Glossary
+
+| Term | Meaning |
+|---|---|
+| **Directive** | One atomic rule cut from the config ("never call export_csv without id_filter"); the unit of testing, repair, and audit |
+| **Probe** | One generated scenario that exercises a directive, built so that a violation is visible in the output |
+| **Tier** (direct / under-load / conflict) | Probe difficulty: clean ask → trigger buried in long context → user pressure against the rule |
+| **Load-bearing (probe)** | Property that a complying and a violating model produce visibly different outputs; probes without it are invalid |
+| **Ablation grid** | The four-way experiment per directive: present/placebo × incumbent/candidate, same probes, paired |
+| **Placebo filler** | Same-length neutral text substituted for a "removed" directive, so deltas aren't confounded by length/position shifts |
+| **Cells 1–4** | Verdicts from the grid: ① delete (native), ② keep (load-bearing), ③ rewrite (ignored), ④ fix urgently (harmful) |
+| **Compliance rate** | Fraction of probe runs that follow the directive; always a rate (k repeats), never a boolean |
+| **Effective n** | Sample size after embedding-dedup of near-identical probes; the honest n behind every confidence interval |
+| **Detection power** | P[a defect of given size is caught by the probe set]; sizes probe sets (§6.1a) |
+| **Certification bound** | Max failure rate consistent with observed clean runs (rule of three: ≈3/n at 95%); words the claims (§6.1a) |
+| **Implicit contract** | A stable incumbent-model behavior no directive mandates; promoted to an explicit directive before migration |
+| **Characterization testing** | Software-engineering precedent: record current behavior as tests when no specs exist, then change internals safely |
+| **Differential testing** | Same inputs through two systems, diff the behavior; disagreement is signal without ground truth |
+| **Judge model** | Small LLM scoring soft directives (tone, style); its results are labeled lower-confidence than mechanical checks |
+| **Knowledge base** | Accumulated per-model behavioral observations and repair patterns; derived state, always reconstructible from runs |
+| **REPRESENT / MEASURE / TRANSFORM** | The three phases (§3.1): build the testable object → run the experiment (a callable service) → change, verify, certify |
