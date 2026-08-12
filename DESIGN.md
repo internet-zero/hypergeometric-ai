@@ -281,6 +281,8 @@ The heart of the system, and a callable service ([three phases](#22-the-three-ph
 
 **Compliance checking.** Against the directive itself: mechanical checkers where possible (JSON parses; argument present; tool not called; word count), a small judge model for soft directives. Mechanical-first ordering; judge-scored results are labeled as such in every report.
 
+**Execution-parity probes (executable outputs).** When the agent's core output is *executable* — MongoDB aggregation pipelines, SQL, code, API calls — a check far stronger than compliance becomes available: run real user questions through the full agent loop on both models, **execute both outputs against the same snapshot environment, normalize, and compare results**. Equal results = semantic equivalence for that input, even when the generated text differs completely — differential testing applied at the output-of-the-output level, with the database as a referee that needs no calibration. Reported as a parity rate with its interval ("191/200 questions equivalent, CI [91.6–97.7]; 9 disagreements attached for review"). Caveats: snapshot equivalence ≠ universal equivalence (seed adversarial data — nulls, empty collections, extreme values); parity certifies *matches the incumbent*, not *the incumbent was right* — exactly the migration promise, inherited bugs included. This makes generative-capability zones (e.g. an insights agent's pipeline generation) *better* covered than prose rules, not worse.
+
 **Cell classification.** Directive utility is Δ(behavior with vs. without):
 
 ```mermaid
@@ -555,6 +557,7 @@ Honest inventory. None known-fatal; all measurable; the Milestone-0 experiment (
 | **Cells 1–4** | Verdicts from the grid: ① delete (native), ② keep (load-bearing), ③ rewrite (ignored), ④ fix urgently (harmful) |
 | **Compliance rate** | Fraction of probe runs that follow the directive; always a rate (k repeats), never a boolean |
 | **Effective n** | Sample size after embedding-dedup of near-identical probes; the honest n behind every confidence interval |
+| **Execution-parity probe** | For executable outputs (Mongo/SQL/code): run both models' outputs against the same snapshot environment and compare results; equal results = semantic equivalence, no ground truth needed |
 | **Detection power** | P[a defect of given size is caught by the probe set]; sizes probe sets |
 | **Certification bound** | Max failure rate consistent with observed clean runs (rule of three: ≈3/n at 95%); words the claims |
 | **Implicit contract** | A stable incumbent-model behavior no directive mandates; promoted to an explicit directive before migration |
