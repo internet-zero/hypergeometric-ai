@@ -7,9 +7,7 @@ Statistical certification and porting of agent configurations across models, wit
 ## Contents
 
 1. **[Introduction](#1-introduction)** — [problem](#11-the-problem) · [impact](#12-impact) · [solution direction](#13-solution-direction)
-2. **[Solution](#2-solution)** — [three-phase architecture](#21-architecture-three-phases) · [pipeline](#22-the-pipeline) · [worked example](#24-the-worked-example) · [phase 1: represent](#25-phase-1-represent) · [phase 2: measure](#26-phase-2-measure) · [phase 3: transform and certify](#27-phase-3-transform-and-certify) · [statistics](#28-statistics) · [data model](#29-data-model) · [knowledge base](#210-the-knowledge-base) · [prior art & landscape](#211-prior-art-and-landscape) · [threats to validity](#212-assumptions-and-threats-to-validity) · [scope & roadmap](#213-scope-and-roadmap) · [open questions](#214-open-questions)
-
-[Glossary](#glossary) at the end.
+2. **[Solution](#2-solution)** — [first principles](#21-from-first-principles-eight-forced-moves) · [three phases](#22-the-three-phases) · [pipeline](#23-the-pipeline) · [worked example](#25-the-worked-example) · [phase 1: represent](#26-phase-1-represent) · [phase 2: measure](#27-phase-2-measure) · [phase 3: transform and certify](#28-phase-3-transform-and-certify) · [statistics](#29-statistics) · [data model](#210-data-model) · [knowledge base](#211-the-knowledge-base) · [prior art & landscape](#212-prior-art-and-landscape) · [threats](#213-assumptions-and-threats-to-validity) · [scope & roadmap](#214-scope-and-roadmap) · [open questions](#215-open-questions) · [glossary](#216-glossary)
 
 ---
 
@@ -37,12 +35,12 @@ What solving this unlocks:
 - **Switching stops being a gamble.** Upgrades — and downgrades to cheaper models — become measured config changes with a certificate, instead of a leap followed by production surprises.
 - **Value with no migration planned.** The same measurement finds dead weight (rules the current model never needed) and silent breakage (rules it ignores) in the *current* setup.
 - **Continuous assurance.** The measurement machinery doubles as drift monitoring: same config, same nominal model, months later — has the provider silently changed the model underneath?
-- **Recurring, event-driven demand.** Every model release, deprecation, and price cut re-creates the need, across every team running agents (see [prior art & landscape](#211-prior-art-and-landscape) — the category is validated but unclaimed).
-- **A compounding asset.** Every run teaches the system how specific models respond to specific config patterns — knowledge no lab publishes and no eval platform collects (see [knowledge base](#210-the-knowledge-base)).
+- **Recurring, event-driven demand.** Every model release, deprecation, and price cut re-creates the need, across every team running agents (see [prior art & landscape](#212-prior-art-and-landscape) — the category is validated but unclaimed).
+- **A compounding asset.** Every run teaches the system how specific models respond to specific config patterns — knowledge no lab publishes and no eval platform collects (see [knowledge base](#211-the-knowledge-base)).
 
 ### 1.3 Solution direction
 
-**The config is the spec.** An eval asks *"was the answer good?"* — which requires humans to define "good" per task; that is the expensive dependency this project refuses. This system asks instead: *"did the model follow its own instructions?"* Every rule in a config is a testable claim about behavior:
+**The core insight: the config is the spec.** An eval asks *"was the answer good?"* — which requires humans to define "good" per task; that is the expensive dependency this project refuses. This system asks instead: *"did the model follow its own instructions?"* Every rule in a config is a testable claim about behavior:
 
 | Rule | Check | Checker |
 |---|---|---|
@@ -53,32 +51,46 @@ What solving this unlocks:
 
 The config defines correct behavior, so **verification is generated from the config automatically**. No ground truth, no labels, no eval authors. (Precedent: IFEval validates instruction-following exactly this way.)
 
-**Stated boundary:** compliance ≠ quality. A config can be faithfully followed and still produce mediocre answers. For migration — *"make the new model behave like the old one did, provably"* — compliance parity is precisely the promise that matters. Outcome evals remain a valid phase two; the probe library built here becomes their seed. See [threats to validity](#212-assumptions-and-threats-to-validity).
+**Stated boundary:** compliance ≠ quality. A config can be faithfully followed and still produce mediocre answers. For migration — *"make the new model behave like the old one did, provably"* — compliance parity is precisely the promise that matters. Outcome evals remain a valid phase two; the probe library built here becomes their seed. See [threats to validity](#213-assumptions-and-threats-to-validity).
 
-Three principles hold the system together:
+Four laws hold the system together:
 
 1. **The config is the spec.** Verification is generated from the rules themselves.
 2. **Behavior is the only ground truth.** Which phrasing a model obeys is a fact about the model's weights, not about the text. Embeddings organize, judge models filter — only execution on the target model decides.
 3. **No claim without a number.** Compliance rates with confidence intervals, paired significance tests, multiple-comparison corrections. Every line of a report should survive an argument with a statistician.
+4. **Detect early, edit late.** The early phases flag and measure but change nothing; every edit lands in the final phase with evidence attached. Nothing is ever changed on the strength of reading alone.
 
-The solution is a **meta-agent pipeline** in three phases: **REPRESENT** the config as testable rules, **MEASURE** each rule's actual effect on each model, **TRANSFORM** what's broken and certify the result. Detailed below.
+The solution is a **meta-agent pipeline** in three phases: **REPRESENT** the config as testable rules, **MEASURE** each rule's actual effect on each model, **TRANSFORM** what's broken and certify the result. The next section derives all of it.
 
 ---
 
 ## 2. Solution
 
-### 2.1 Architecture: three phases
+### 2.1 From first principles: eight forced moves
 
-The system's job — *make config X fit model Y, provably* — decomposes irreducibly into three operations: you cannot measure a blob (need a testable representation first), you cannot safely change what you haven't measured (blind rewriting is the known-failed approach), and measurement without action plus proof is just a report. Hence three phases:
+Every design element below is the conclusion of an argument. Start from the job statement — *make config X fit model Y, provably, without evals* — and each move is forced:
+
+1. **No evals exist → the only spec every agent already has is its own config.** So verification must be generated from the config: each rule states what correct behavior looks like, and checking compliance needs no answer key. *(→ config-as-spec, law 1)*
+2. **"Which phrasing does model Y obey" is a fact about Y's weights, invisible in text.** No reader — human or superior model — can decide it. So the target model must be executed; reading can only organize and filter. *(→ law 2)*
+3. **Repair and audit require localization.** You cannot fix or explain "a 4,000-token blob"; you can fix and explain one rule. So the config must be decomposed into atomic directives — the unit of testing, repair, and audit. *(→ parse, 1a)*
+4. **A directive's value is a behavioral delta.** The only clean way to measure "what does this rule do?" is a controlled experiment: same full config, same tasks, rule present vs. absent (placebo-filled, so length/position stay constant), run on both models with the same probes, paired. *(→ the ablation grid, Phase 2)*
+5. **The experiment is only valid if its design knows the config's structure.** A near-duplicate rule elsewhere in the config covers for the one being ablated (twin masking → false "delete" verdicts); conflicting rules interact under ablation. So twins and conflicts must be *detected* before measuring — while *editing* them must still wait for evidence. Detection is experiment design, not optimization. *(→ static pass 1b, law 4)*
+6. **Finite samples → statistical discipline.** Detection power sizes the probe sets ("200 probes: a badly broken rule cannot hide, miss chance ~10⁻⁹"); certification bounds word the claims ("≤1.5% violation rate at 95% confidence"); paired tests separate regression from noise; corrections stop 60 rules from producing false alarms by luck. *(→ statistics, law 3)*
+7. **Only measured verdicts justify edits — and edits must be re-measured.** Broken rules get repaired through generate-wide → read-to-filter → run-to-decide; the reassembled whole gets one interaction check (rules interact; testing all combinations is combinatorial, testing none ships conflicts); the result ships with a count-backed report and a clause-level ledger. *(→ Phase 3)*
+8. **Models keep shipping → this is not a one-shot tool.** The system runs ambient (woken by model releases, config changes, fresh traces), and every run accumulates per-model behavioral knowledge that makes the next run better. *(→ meta-agent + knowledge base)*
+
+Moves 1–2 are the foundations; 3–5 dictate REPRESENT and the shape of MEASURE; 6 is the claims discipline; 7 is TRANSFORM; 8 is the operating mode.
+
+### 2.2 The three phases
+
+The eight moves group into three phases — and the grouping is not cosmetic; the boundaries fall exactly where the system's properties change:
 
 ```mermaid
 flowchart LR
-    P1["REPRESENT<br/>parse · clean · build probes"] --> P2["MEASURE<br/>the ablation grid + stats"]
+    P1["REPRESENT<br/>parse · detect · build probes"] --> P2["MEASURE<br/>the ablation grid + stats"]
     P2 --> P3["TRANSFORM & CERTIFY<br/>repair · smoke · certify"]
     P3 -- "re-verify" --> P2
 ```
-
-The phase boundaries are natural, not cosmetic — they fall exactly where the system's properties change:
 
 | Property | REPRESENT | MEASURE | TRANSFORM |
 |---|---|---|---|
@@ -88,7 +100,7 @@ The phase boundaries are natural, not cosmetic — they fall exactly where the s
 | Invalidated by | config changes | config, model, or traffic drift | a failed re-measure |
 | Needs governance? | no | no | **yes** (review, versioning, rollback) |
 
-The single most important line in the system is the MEASURE→TRANSFORM boundary: everything before it is read-only and safe to run anytime; everything after it mutates the config and needs governance.
+The single most important line in the system is the MEASURE→TRANSFORM boundary: everything before it is read-only and safe to run anytime; everything after it mutates the config and needs governance. (This is law 4, drawn as an architecture.)
 
 **MEASURE is a service, not a step.** It is invoked by at least four callers: initial certification, repair verification (does the rewrite land in "keep"?), re-certification as traces accumulate, and **drift monitoring** — same config, same nominal model, months later. The same probe sets answer all four questions.
 
@@ -103,7 +115,7 @@ fresh traces landed   →  REPRESENT absorbs them; MEASURE re-certifies
 
 Each phase decomposes into named parts (REPRESENT: parse → static pass → probe synthesis; TRANSFORM: repair → smoke → certify) — kept as internal checkpoints because each has distinct inputs, outputs, and failure modes. Like a compiler: three-part architecture, multiple passes inside.
 
-### 2.2 The pipeline
+### 2.3 The pipeline
 
 ```mermaid
 flowchart TD
@@ -112,7 +124,7 @@ flowchart TD
     TR --> S3
 
     subgraph P1["PHASE 1 — REPRESENT (read-only)"]
-        S1["parse<br/>split config into atomic directives"] --> S2["static pass<br/>dedupe, contradictions,<br/>implicit-contract extraction"]
+        S1["parse<br/>split config into atomic directives"] --> S2["static pass<br/>detect twins + conflicts,<br/>extract implicit contracts"]
         S2 --> S3["probe synthesis<br/>generate + prune scenario sets"]
     end
 
@@ -143,7 +155,7 @@ flowchart TD
     KB -.-> S5
 ```
 
-### 2.3 The pipeline is itself an agent
+### 2.4 A meta-agent, running ambient
 
 Structurally, Hypergeometric is a **meta-agent**: an agent whose "user" is another agent's config. It is a deterministic workflow (the steps are known, so control flow is fixed) whose organs are LLM calls — a parser, a scenario generator, a judge, a merger. It runs **ambient**: asleep until an event wakes it.
 
@@ -158,7 +170,7 @@ flowchart LR
     F --> Z((sleep))
 ```
 
-### 2.4 The worked example
+### 2.5 The worked example
 
 Every phase below is illustrated with the same agent. **The inventory-insights agent**: employees ask it questions about company software/hardware inventory. Three MCP tools — `query_inventory`, `export_csv`, `send_report` — and a system prompt written 18 months ago for the incumbent model ("Model A"). The company wants to switch to a newer, cheaper model ("Model B"). There is no eval suite. The relevant prompt fragment:
 
@@ -175,13 +187,13 @@ You are an inventory analyst assistant.
   period used.
 ```
 
-### 2.5 Phase 1: Represent
+### 2.6 Phase 1: Represent
 
 Turn a text blob into a testable object: rules plus their instruments. Read-only, cheap, and its outputs — the directive inventory and probe sets — are the durable assets of the whole system. Three parts.
 
 #### 1a — Parse
 
-**Purpose:** you cannot test, repair, or audit "a 4,000-token document." You can test, repair, and audit one rule at a time. Parse decomposes the config into an inventory of **atomic directives**: one rule per unit, each with an ID, a type, and a source location.
+**Purpose:** you cannot test, repair, or audit "a 4,000-token document." You can test, repair, and audit one rule at a time (move 3). Parse decomposes the config into an inventory of **atomic directives**: one rule per unit, each with an ID, a type, and a source location.
 
 **Input:** system prompt, MCP tool descriptions, skill files.
 **Output:** `directives.json`.
@@ -199,21 +211,21 @@ Directive types drive probe design downstream:
 
 > **Worked example.** The prompt fragment parses into six directives R1–R6 (JSON output; export filter; missing-data disclosure; 150-word limit; recipient confirmation; baseline statement), plus additional directives from each tool description. Each carries `{id, type, text, source: {file, span}}`.
 
-**Notes.** Not all prompt content is rule-like — personas, background context, worked examples. These parse into `style`/context blocks and are handled by judge-scored probes or carried as-is; the decomposition does not force everything to be a rule. Milestone 0 uses hand-decomposition; automated parsing quality is an open question ([open questions](#214-open-questions)).
+**Notes.** Not all prompt content is rule-like — personas, background context, worked examples. These parse into `style`/context blocks and are handled by judge-scored probes or carried as-is; the decomposition does not force everything to be a rule. Milestone 0 uses hand-decomposition; automated parsing quality is an open question ([open questions](#215-open-questions)).
 
 #### 1b — Static pass (detection only, no model calls, no edits)
 
-**Purpose:** catch everything that pure reading can catch — cheaply, before any model is invoked — and, critically, write down what the incumbent model knows that the config never said.
+**Purpose:** give MEASURE a valid experiment design (move 5), and write down what the incumbent model knows that the config never said.
 
-**This pass changes nothing.** It emits flags and metadata; every actual edit (merging duplicates, deleting rules, rewriting) happens in TRANSFORM, evidence-backed. The pass exists because MEASURE's *experiment design* depends on its flags — it is not optimization, and optimization must not happen here.
+**This pass changes nothing.** It emits flags and metadata; every actual edit (merging duplicates, deleting rules, rewriting) happens in TRANSFORM, evidence-backed (law 4). The pass exists because MEASURE's *experiment design* depends on its flags — it is not optimization, and optimization must not happen here.
 
 Three analyses:
 
-**(a) Redundancy / contradiction detection.** Embed all directives; flag near-duplicate pairs and semantically opposed pairs (conflicts that have been resolved so far only by the incumbent model's mood). **Why this cannot wait until the end — twin masking:** if R2 lives in the system prompt and a near-twin sits in the tool description, ablating R2 alone leaves the twin covering for it → "complies without the rule" → false cell-① *delete* verdict; the twin gets the same false verdict; an evidence-driven TRANSFORM then deletes both and the behavior is lost, with every number looking rigorous. Duplicates are backups that mask each other's contribution. The fix requires knowing the twins *before* the experiment: MEASURE ablates the **equivalence class together**, and flagged conflict pairs are measured jointly. Detection early, editing late.
+**(a) Twin / conflict detection.** Embed all directives; flag near-duplicate pairs and semantically opposed pairs (conflicts that have been resolved so far only by the incumbent model's mood). **Why this cannot wait until the end — twin masking:** if R2 lives in the system prompt and a near-twin sits in the tool description, ablating R2 alone leaves the twin covering for it → "complies without the rule" → false cell-① *delete* verdict; the twin gets the same false verdict; an evidence-driven TRANSFORM then deletes both and the behavior is lost, with every number looking rigorous. Duplicates are backups that mask each other's contribution. The fix requires knowing the twins *before* the experiment: MEASURE ablates the **equivalence class together**, and flagged conflict pairs are measured jointly. Detection early, editing late.
 
-**(b) Style lint (advisory, deferable).** Check directives against the accumulated per-model pattern base ([knowledge base](#210-the-knowledge-base)): "Model B follows numbered constraints better than prose"; "Model B weighs tool descriptions over mid-prompt text." Unlike (a) and (c), this part carries no experimental-design weight — it only warm-starts repairs, and may equally run lazily at repair time (3a).
+**(b) Style lint (advisory, deferable).** Check directives against the accumulated per-model pattern base ([knowledge base](#211-the-knowledge-base)): "Model B follows numbered constraints better than prose"; "Model B weighs tool descriptions over mid-prompt text." Unlike (a) and (c), this part carries no experimental-design weight — it only warm-starts repairs, and may equally run lazily at repair time (3a).
 
-**(c) Implicit-contract extraction.** Mine the incumbent's production traces for stable behavioral regularities that **no directive mandates**, and promote them to explicit directives *before* migration.
+**(c) Implicit-contract extraction.** Mine the incumbent's production traces for stable behavioral regularities that **no directive mandates**, and promote them to explicit directives *before* migration — while the incumbent still exists to be observed.
 
 ```mermaid
 flowchart TD
@@ -227,7 +239,7 @@ flowchart TD
 
 > **Worked example.** (a) finds a contradiction: R4 "under 150 words" vs. a skill file's "explain your reasoning in detail" — silently fighting for 18 months. (c) finds that Model A **always includes units** (GB, count, USD) in tables — 100% of sampled outputs — yet nothing requires it. New directive **R7: always include units in tabular values**. This is the migration failure mode nobody sees coming: behavior that lived in the old model, not in the prompt, silently lost at switch-over. (Precedent: characterization testing for legacy code.)
 
-**Boundary.** Embeddings here do organizational work only — similarity, clustering, dedup. They never issue verdicts about model fit: semantic similarity does not predict behavioral equivalence.
+**Boundary.** Embeddings here do organizational work only — similarity, clustering, dedup. They never issue verdicts about model fit: semantic similarity does not predict behavioral equivalence (law 2).
 
 #### 1c — Probe synthesis
 
@@ -259,13 +271,13 @@ flowchart TD
 
 The scenario set is the durable asset of the whole system: built once per directive, reused by every MEASURE call and every repair.
 
-### 2.6 Phase 2: Measure
+### 2.7 Phase 2: Measure
 
-The heart of the system, and a callable service (§2.1). For each directive, measure what it actually *does* — on each model — by running its probes with the directive present and absent, and comparing.
+The heart of the system, and a callable service ([three phases](#22-the-three-phases)). For each directive, measure what it actually *does* — on each model — by running its probes with the directive present and absent, and comparing (move 4).
 
 **The four-way run.** Per directive: probes run with directive present / replaced × incumbent / candidate model, same probes paired across models, k ≥ 3 repeats per probe (compliance is a rate, not a boolean). Every run uses the **full config** — the only variable between compared runs is the one directive under test. **Exception:** near-duplicate directives flagged in 1b are ablated as an equivalence class (all twins out together), and flagged conflict pairs are additionally measured jointly — ablating one twin while another remains would mask its contribution and produce false *delete* verdicts.
 
-**Placebo control.** "Removed" replaces the directive with same-length neutral filler — not deletion — otherwise measured deltas are confounded with prompt-length and position shifts ([threats](#212-assumptions-and-threats-to-validity), threat 1).
+**Placebo control.** "Removed" replaces the directive with same-length neutral filler — not deletion — otherwise measured deltas are confounded with prompt-length and position shifts ([threats](#213-assumptions-and-threats-to-validity), threat 1).
 
 **Compliance checking.** Against the directive itself: mechanical checkers where possible (JSON parses; argument present; tool not called; word count), a small judge model for soft directives. Mechanical-first ordering; judge-scored results are labeled as such in every report.
 
@@ -282,7 +294,7 @@ flowchart TD
     E -- yes --> C4["cell 4 — FIX URGENTLY<br/>directive actively harmful<br/>(collides with training or another rule)"]
 ```
 
-("Complies" means: compliance rate above threshold with statistical confidence — see [statistics](#28-statistics). Borderline rates trigger more sampling, not a coin-flip verdict.)
+("Complies" means: compliance rate above threshold with statistical confidence — see [statistics](#29-statistics). Borderline rates trigger more sampling, not a coin-flip verdict.)
 
 **The migration report is the diff of the two grids** (incumbent vs. candidate). The incumbent's grid is the control group: without it, "this rule scores badly on the new model" cannot be split into *broke because of the switch* (fix it) vs. *never worked anywhere* (delete it; nothing regressed).
 
@@ -300,13 +312,13 @@ flowchart TD
 >
 > \*Model A does it without being told — which is exactly why nobody ever wrote it down. Model B does not (44/100 without). The static pass (1b) is what caught this.
 
-### 2.7 Phase 3: Transform and certify
+### 2.8 Phase 3: Transform and certify
 
-The only phase that writes. Three parts: repair what MEASURE proved broken, verify the whole, ship with proof.
+The only phase that writes (law 4). Three parts: repair what MEASURE proved broken, verify the whole, ship with proof.
 
 #### 3a — Repair (cells 3 and 4 only)
 
-**Purpose:** find, for each broken directive, a phrasing/placement the target model actually obeys. Nobody — no human, no superior model — can predict this from text alone; the knowledge lives in the target model's weights. The funnel's motto: **reading narrows, running decides.**
+**Purpose:** find, for each broken directive, a phrasing/placement the target model actually obeys. Nobody — no human, no superior model — can predict this from text alone; the knowledge lives in the target model's weights (law 2). The funnel's motto: **reading narrows, running decides.**
 
 ```mermaid
 flowchart TD
@@ -340,7 +352,7 @@ Division of labor, stated precisely: the judge (reading) can eliminate bad *writ
 
 **Purpose:** directives were optimized one at a time; rules interact. Reassemble the config from surviving and repaired directives, then run the **whole config** once through real traces and the top-tier probes.
 
-Why this part is necessary and sufficient-ish: joint testing of all combinations is combinatorially impossible (200 variants × 60 directives); testing nothing jointly ships hidden conflicts. Per-directive optimization + one whole-config verification pass is the tractable middle. High-risk directive *pairs* (flagged by 1b's contradiction detection) get targeted joint probes.
+Why this part is necessary and sufficient-ish: joint testing of all combinations is combinatorially impossible (200 variants × 60 directives); testing nothing jointly ships hidden conflicts. Per-directive optimization + one whole-config verification pass is the tractable middle. High-risk directive *pairs* (flagged by 1b) get targeted joint probes.
 
 > **Worked example.** The repaired R2 makes the agent *refuse and explain* on unfiltered-export requests — and the strengthened R4 (word limit) truncates that explanation mid-sentence. Both pass individually; together they produce a clipped, confusing refusal. Fix: one line added to R4 ("word limit does not apply to safety refusals"). Re-run: clean.
 
@@ -364,9 +376,9 @@ evidence:
 config: v14 -> v15
 ```
 
-### 2.8 Statistics
+### 2.9 Statistics
 
-Every number in a report is backed by one of the following. None of it is exotic; all of it is mandatory.
+Every number in a report is backed by one of the following. None of it is exotic; all of it is mandatory (law 3).
 
 **Rule of three — zero-failure certification.** *n* clean trials with zero failures → 95%-confidence upper bound on the true failure rate ≈ **3/n**.
 
@@ -416,7 +428,7 @@ flowchart TD
 
 **Effective sample size.** Confidence intervals assume independent trials. Embedding-dedup of scenarios (1c) is what makes *n* honest. Residual generator bias means intervals should be read as slightly optimistic; conservative reporting rounds against the claim. Model outputs are stochastic — a "bad" scenario fails probabilistically, hence k-repeats and rates, never booleans.
 
-### 2.9 Data model
+### 2.10 Data model
 
 ```mermaid
 erDiagram
@@ -447,14 +459,14 @@ Key invariants:
 - `RUN` records are append-only — the raw material for re-analysis and for external-validity checks later.
 - `LESSON`s reference the runs that produced them; the knowledge base is derived state, always reconstructible.
 
-**Embedding model policy.** The pipeline's embeddings (1b dedupe/contradiction detection, 1c probe dedup) come from a **standalone embedding model pinned by the pipeline** — independent of both the incumbent and candidate chat models. Chat models and embedding models are separate artifacts: an LLM's internal embedding layer is inaccessible weight-internals, and external embedding models (the ones that produce storable vectors) are chosen independently of any chat model. Consequences:
+**Embedding model policy.** The pipeline's embeddings (1b twin/conflict detection, 1c probe dedup) come from a **standalone embedding model pinned by the pipeline** — independent of both the incumbent and candidate chat models. Chat models and embedding models are separate artifacts: an LLM's internal embedding layer is inaccessible weight-internals, and external embedding models (the ones that produce storable vectors) are chosen independently of any chat model. Consequences:
 
 - **LLM migration (A → B) never invalidates stored vectors.** The agent's vector stores, and the pipeline's own clusters, are keyed to the embedding model, not the chat model.
 - **Embedding-model migration is a separate, total event:** vectors from different embedding models (or versions) occupy unrelated spaces; cross-space similarity is meaningless. The only migration is re-embed-everything from source text.
 - **Policy: text canonical, vectors disposable.** Every artifact stores its source text; the embedder name + version is recorded in probe-set and knowledge-base metadata; an embedder upgrade triggers a cheap re-embed + re-cluster, never data loss.
 - **Indirect couplings to still probe on LLM migration:** LLM-generated retrieval queries change style with the model (same index, different hits); prompt sections governing use of retrieved content are ordinary directives — certify them like any other. Architectures that derive embeddings from the chat LLM itself (hidden-state pooling) weld the two migrations together and should be flagged in 1b.
 
-### 2.10 The knowledge base
+### 2.11 The knowledge base
 
 Every run — every ablation grid, every repair, every merge — emits structured observations about model behavior:
 
@@ -468,7 +480,7 @@ observed: 2026-08
 
 These accumulate into per-model behavioral profiles that (a) power the 1b lint, (b) warm-start 3a rewrites, and (c) make the tenth migration between a given model pair dramatically better than the first. The pipeline is disposable; this dataset is not. No lab publishes it; no eval platform collects it.
 
-### 2.11 Prior art and landscape
+### 2.12 Prior art and landscape
 
 The design composes five proven ideas; the composition — on this artifact class — is the new part.
 
@@ -487,11 +499,11 @@ The design composes five proven ideas; the composition — on this artifact clas
 
 Unclaimed by anyone: eval-free operation (config-as-spec), directive-level decomposition with ablation verdicts, statistical certification (a p-value shipped with every prompt change), clause-level audit ledgers, coverage of MCP tool descriptions and skills (the market fixates on "the prompt"), and vendor-neutral any-direction migration.
 
-### 2.12 Assumptions and threats to validity
+### 2.13 Assumptions and threats to validity
 
-Honest inventory. None known-fatal; all measurable; the Milestone-0 experiment ([roadmap](#213-scope-and-roadmap)) tests the first three nearly for free.
+Honest inventory. None known-fatal; all measurable; the Milestone-0 experiment ([roadmap](#214-scope-and-roadmap)) tests the first three nearly for free.
 
-**Threat 1 — Decomposition independence (weakest joint).** The ablation grid assumes rules can be tested one at a time. Prompts may not be that linear: removing rule A can change how the model treats rule B; removing text also shifts length and position of everything else. *Mitigations:* placebo filler instead of deletion (Phase 2); measure interaction size directly by ablating selected **pairs** vs. singles — if pair effects ≈ sum of single effects, independence holds well enough. Open empirical question; no published answer.
+**Threat 1 — Decomposition independence (weakest joint).** The ablation grid assumes rules can be tested one at a time. Prompts may not be that linear: removing rule A can change how the model treats rule B; removing text also shifts length and position of everything else. *Mitigations:* placebo filler instead of deletion; equivalence-class ablation for twins; measure interaction size directly by ablating selected **pairs** vs. singles — if pair effects ≈ sum of single effects, independence holds well enough. Open empirical question; no published answer.
 
 **Threat 2 — Probe distribution transfer.** Generated scenarios + replayed traces approximate real traffic; they are not future traffic. Certification claims must be scoped: *"certified against this probe distribution,"* never *"guaranteed."* *Mitigations:* heavy trace blending; re-certification as traces accumulate. Shared by every testing methodology in existence; not disqualifying, but must be stated.
 
@@ -499,7 +511,7 @@ Honest inventory. None known-fatal; all measurable; the Milestone-0 experiment (
 
 **Threat 4 — Judge softness.** Style/tone directives require LLM judges, which re-imports a slice of the eval problem through the back door (judge noise, judge bias). *Mitigations:* mechanical rules first; report judge agreement rates; every report separates mechanically-checked from judge-checked results and treats the latter as lower-confidence.
 
-### 2.13 Scope and roadmap
+### 2.14 Scope and roadmap
 
 **In scope (v1):** MCP tool-calling agents; one config format end-to-end; the read-only migration report as the first shippable unit (the port/repair loop layers on top).
 
@@ -520,18 +532,16 @@ Honest inventory. None known-fatal; all measurable; the Milestone-0 experiment (
 | 2 — Porter | TRANSFORM: repair funnel, assembly, smoke, ledger | Certified auto-migration |
 | 3 — Flywheel | Knowledge base, trace mining, implicit-contract extraction at scale, sequential-testing optimization | The moat |
 
-### 2.14 Open questions
+### 2.15 Open questions
 
 - **Directive parsing quality:** how reliably can an LLM decompose arbitrary prompts into genuinely atomic, non-overlapping directives? (Milestone 0 sidesteps via hand-decomposition; milestone 1 must solve it.)
-- **Interaction coverage:** is one whole-config smoke pass enough, or do high-risk directive *pairs* (identified how — 1b contradiction flags? shared trigger conditions?) deserve targeted joint probes as a rule?
+- **Interaction coverage:** is one whole-config smoke pass enough, or do high-risk directive *pairs* (identified how — 1b flags? shared trigger conditions?) deserve targeted joint probes as a rule?
 - **Judge-model calibration:** which style/tone checks are stable across judge models, and how should judge disagreement be surfaced in reports?
 - **Trace privacy:** minimum viable redaction for running Phase 1 on customer traces in-VPC.
 - **External validity:** over months, do probe-certified repairs measurably reduce failure rates in production traces? (The ultimate test; the append-only `RUN` store exists so this can be answered later.)
 - **Proxy failure modes:** when does compliance parity fail as a proxy — migrations where the config was followed on both models but outcome quality still shifted?
 
----
-
-## Glossary
+### 2.16 Glossary
 
 | Term | Meaning |
 |---|---|
@@ -541,6 +551,7 @@ Honest inventory. None known-fatal; all measurable; the Milestone-0 experiment (
 | **Load-bearing (probe)** | Property that a complying and a violating model produce visibly different outputs; probes without it are invalid |
 | **Ablation grid** | The four-way experiment per directive: present/placebo × incumbent/candidate, same probes, paired |
 | **Placebo filler** | Same-length neutral text substituted for a "removed" directive, so deltas aren't confounded by length/position shifts |
+| **Twin masking** | Near-duplicate rules covering for each other under ablation, producing false *delete* verdicts; fixed by equivalence-class ablation |
 | **Cells 1–4** | Verdicts from the grid: ① delete (native), ② keep (load-bearing), ③ rewrite (ignored), ④ fix urgently (harmful) |
 | **Compliance rate** | Fraction of probe runs that follow the directive; always a rate (k repeats), never a boolean |
 | **Effective n** | Sample size after embedding-dedup of near-identical probes; the honest n behind every confidence interval |
