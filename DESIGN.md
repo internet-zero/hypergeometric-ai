@@ -442,6 +442,15 @@ Key invariants:
 - `RUN` records are append-only — the raw material for re-analysis and for external-validity checks later (§13).
 - `LESSON`s reference the runs that produced them; the knowledge base is derived state, always reconstructible.
 
+### 7.1 Embedding model policy
+
+The pipeline's embeddings (stage-2 dedupe/contradiction detection, stage-3 probe dedup) come from a **standalone embedding model pinned by the pipeline** — independent of both the incumbent and candidate chat models. Chat models and embedding models are separate artifacts: an LLM's internal embedding layer is inaccessible weight-internals, and external embedding models (the ones that produce storable vectors) are chosen independently of any chat model. Consequences:
+
+- **LLM migration (A → B) never invalidates stored vectors.** The agent's vector stores, and the pipeline's own clusters, are keyed to the embedding model, not the chat model.
+- **Embedding-model migration is a separate, total event:** vectors from different embedding models (or versions — `ada-002` vs. `text-embedding-3`) occupy unrelated spaces; cross-space similarity is meaningless. The only migration is re-embed-everything from source text.
+- **Policy: text canonical, vectors disposable.** Every artifact stores its source text; the embedder name + version is recorded in probe-set and knowledge-base metadata; an embedder upgrade triggers a cheap re-embed + re-cluster, never data loss.
+- **Indirect couplings to still probe on LLM migration:** LLM-generated retrieval queries change style with the model (same index, different hits); prompt sections governing use of retrieved content are ordinary directives — certify them like any other. Architectures that derive embeddings from the chat LLM itself (hidden-state pooling) weld the two migrations together and should be flagged in stage 2.
+
 ## 8. Prior art
 
 The design composes five proven ideas; the composition — on this artifact class — is the new part.
