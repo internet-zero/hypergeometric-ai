@@ -7,8 +7,9 @@ Statistical certification and porting of agent configurations across models, wit
 ## Contents
 
 1. **[Introduction](#1-introduction)** — [problem](#11-the-problem) · [impact](#12-impact) · [solution direction](#13-solution-direction)
-2. **[Solution](#2-solution)** — [three-phase architecture](#21-architecture-three-phases) · [pipeline](#22-the-pipeline) · [worked example](#24-the-worked-example) · [the seven steps](#25-the-seven-steps-in-detail) · [statistics](#26-statistics) · [data model](#27-data-model) · [knowledge base](#28-the-knowledge-base)
-3. **[Appendix](#3-appendix)** — [prior art](#31-prior-art) · [landscape](#32-landscape-and-positioning) · [threats to validity](#33-assumptions-and-threats-to-validity) · [scope](#34-scope) · [roadmap](#35-roadmap) · [open questions](#36-open-questions) · [glossary](#37-glossary)
+2. **[Solution](#2-solution)** — [three-phase architecture](#21-architecture-three-phases) · [pipeline](#22-the-pipeline) · [worked example](#24-the-worked-example) · [the seven steps](#25-the-seven-steps-in-detail) · [statistics](#26-statistics) · [data model](#27-data-model) · [knowledge base](#28-the-knowledge-base) · [prior art & landscape](#29-prior-art-and-landscape) · [threats to validity](#210-assumptions-and-threats-to-validity) · [scope & roadmap](#211-scope-and-roadmap) · [open questions](#212-open-questions)
+
+[Glossary](#glossary) at the end.
 
 ---
 
@@ -36,7 +37,7 @@ What solving this unlocks:
 - **Switching stops being a gamble.** Upgrades — and downgrades to cheaper models — become measured config changes with a certificate, instead of a leap followed by production surprises.
 - **Value with no migration planned.** The same measurement finds dead weight (rules the current model never needed) and silent breakage (rules it ignores) in the *current* setup.
 - **Continuous assurance.** The measurement machinery doubles as drift monitoring: same config, same nominal model, months later — has the provider silently changed the model underneath?
-- **Recurring, event-driven demand.** Every model release, deprecation, and price cut re-creates the need, across every team running agents (see [landscape](#32-landscape-and-positioning) — the category is validated but unclaimed).
+- **Recurring, event-driven demand.** Every model release, deprecation, and price cut re-creates the need, across every team running agents (see [prior art & landscape](#29-prior-art-and-landscape) — the category is validated but unclaimed).
 - **A compounding asset.** Every run teaches the system how specific models respond to specific config patterns — knowledge no lab publishes and no eval platform collects (see [knowledge base](#28-the-knowledge-base)).
 
 ### 1.3 Solution direction
@@ -52,7 +53,7 @@ What solving this unlocks:
 
 The config defines correct behavior, so **verification is generated from the config automatically**. No ground truth, no labels, no eval authors. (Precedent: IFEval validates instruction-following exactly this way.)
 
-**Stated boundary:** compliance ≠ quality. A config can be faithfully followed and still produce mediocre answers. For migration — *"make the new model behave like the old one did, provably"* — compliance parity is precisely the promise that matters. Outcome evals remain a valid phase two; the probe library built here becomes their seed. See [threats to validity](#33-assumptions-and-threats-to-validity).
+**Stated boundary:** compliance ≠ quality. A config can be faithfully followed and still produce mediocre answers. For migration — *"make the new model behave like the old one did, provably"* — compliance parity is precisely the promise that matters. Outcome evals remain a valid phase two; the probe library built here becomes their seed. See [threats to validity](#210-assumptions-and-threats-to-validity).
 
 Three principles hold the system together:
 
@@ -185,7 +186,7 @@ Directive types drive probe design downstream:
 
 > **Worked example.** The prompt fragment parses into six directives R1–R6 (JSON output; export filter; missing-data disclosure; 150-word limit; recipient confirmation; baseline statement), plus additional directives from each tool description. Each carries `{id, type, text, source: {file, span}}`.
 
-**Notes.** Not all prompt content is rule-like — personas, background context, worked examples. These parse into `style`/context blocks and are handled by judge-scored probes or carried as-is; the decomposition does not force everything to be a rule. Phase 0 uses hand-decomposition; automated parsing quality is an open question ([appendix](#36-open-questions)).
+**Notes.** Not all prompt content is rule-like — personas, background context, worked examples. These parse into `style`/context blocks and are handled by judge-scored probes or carried as-is; the decomposition does not force everything to be a rule. Phase 0 uses hand-decomposition; automated parsing quality is an open question ([open questions](#212-open-questions)).
 
 #### Step 2 — Static pass (no model calls)
 
@@ -249,7 +250,7 @@ The scenario set is the durable asset of the whole system: built once per direct
 
 **The four-way run.** Per directive: probes run with directive present / replaced × incumbent / candidate model, same probes paired across models, k ≥ 3 repeats per probe (compliance is a rate, not a boolean). Every run uses the **full config** — the only variable between compared runs is the one directive under test.
 
-**Placebo control.** "Removed" replaces the directive with same-length neutral filler — not deletion — otherwise measured deltas are confounded with prompt-length and position shifts ([threats](#33-assumptions-and-threats-to-validity), threat 1).
+**Placebo control.** "Removed" replaces the directive with same-length neutral filler — not deletion — otherwise measured deltas are confounded with prompt-length and position shifts ([threats](#210-assumptions-and-threats-to-validity), threat 1).
 
 **Compliance checking.** Against the directive itself: mechanical checkers where possible (JSON parses; argument present; tool not called; word count), a small judge model for soft directives. Mechanical-first ordering; judge-scored results are labeled as such in every report.
 
@@ -448,11 +449,7 @@ observed: 2026-08
 
 These accumulate into per-model behavioral profiles that (a) power the step-2 lint, (b) warm-start step-5 rewrites, and (c) make the tenth migration between a given model pair dramatically better than the first. The pipeline is disposable; this dataset is not. No lab publishes it; no eval platform collects it.
 
----
-
-## 3. Appendix
-
-### 3.1 Prior art
+### 2.9 Prior art and landscape
 
 The design composes five proven ideas; the composition — on this artifact class — is the new part.
 
@@ -462,9 +459,7 @@ The design composes five proven ideas; the composition — on this artifact clas
 - **GEPA / measured prompt optimization** — reflective rewriting gated on execution scores; Pareto archives that keep "specialist" candidates alive.
 - **ACE** — itemized, delta-updated contexts; the reason repair edits one directive at a time instead of rewriting the config wholesale (bounded blast radius; no context collapse).
 
-### 3.2 Landscape and positioning
-
-The category is validated but unclaimed (as of mid-2026):
+**Landscape.** The category is validated but unclaimed (as of mid-2026):
 
 - **Direct:** Narrow AI (automated prompt migration, closest pitch); AWS Bedrock Prompt Optimization / Model Agility (real, but one-directional — migration *onto* Bedrock — and prompt-only); the labs' own migration guides and metaprompts (onboarding tools for their own models, not neutral certifiers).
 - **Adjacent heavyweight:** Databricks Agent Bricks — auto-optimized agents with model flexing, but platform-locked, eval-harness-driven, and a build-here play rather than certify-what-you-have.
@@ -473,9 +468,9 @@ The category is validated but unclaimed (as of mid-2026):
 
 Unclaimed by anyone: eval-free operation (config-as-spec), directive-level decomposition with ablation verdicts, statistical certification (a p-value shipped with every prompt change), clause-level audit ledgers, coverage of MCP tool descriptions and skills (the market fixates on "the prompt"), and vendor-neutral any-direction migration.
 
-### 3.3 Assumptions and threats to validity
+### 2.10 Assumptions and threats to validity
 
-Honest inventory. None known-fatal; all measurable; the Phase-0 experiment ([roadmap](#35-roadmap)) tests the first three nearly for free.
+Honest inventory. None known-fatal; all measurable; the Phase-0 experiment ([roadmap](#211-scope-and-roadmap)) tests the first three nearly for free.
 
 **Threat 1 — Decomposition independence (weakest joint).** The ablation grid assumes rules can be tested one at a time. Prompts may not be that linear: removing rule A can change how the model treats rule B; removing text also shifts length and position of everything else. *Mitigations:* placebo filler instead of deletion (step 4); measure interaction size directly by ablating selected **pairs** vs. singles — if pair effects ≈ sum of single effects, independence holds well enough. Open empirical question; no published answer.
 
@@ -485,7 +480,7 @@ Honest inventory. None known-fatal; all measurable; the Phase-0 experiment ([roa
 
 **Threat 4 — Judge softness.** Style/tone directives require LLM judges, which re-imports a slice of the eval problem through the back door (judge noise, judge bias). *Mitigations:* mechanical rules first; report judge agreement rates; every report separates mechanically-checked from judge-checked results and treats the latter as lower-confidence.
 
-### 3.4 Scope
+### 2.11 Scope and roadmap
 
 **In scope (v1):** MCP tool-calling agents; one config format end-to-end; the read-only migration report as the first shippable unit (the port/repair loop layers on top).
 
@@ -497,7 +492,7 @@ Honest inventory. None known-fatal; all measurable; the Phase-0 experiment ([roa
 - General-framework ambitions before one agent shape works end-to-end
 - Dashboards before the report and ledger are right — they *are* the product
 
-### 3.5 Roadmap
+**Roadmap:**
 
 | Phase | Deliverable | Notes |
 |---|---|---|
@@ -506,7 +501,7 @@ Honest inventory. None known-fatal; all measurable; the Phase-0 experiment ([roa
 | 2 — Porter | Repair funnel, assembly, smoke, ledger | Certified auto-migration |
 | 3 — Flywheel | Knowledge base, trace mining, implicit-contract extraction at scale, sequential-testing optimization | The moat |
 
-### 3.6 Open questions
+### 2.12 Open questions
 
 - **Directive parsing quality:** how reliably can an LLM decompose arbitrary prompts into genuinely atomic, non-overlapping directives? (Phase 0 sidesteps via hand-decomposition; phase 1 must solve it.)
 - **Interaction coverage:** is one whole-config smoke pass enough, or do high-risk directive *pairs* (identified how — step-2 contradiction flags? shared trigger conditions?) deserve targeted joint probes as a rule?
@@ -515,7 +510,9 @@ Honest inventory. None known-fatal; all measurable; the Phase-0 experiment ([roa
 - **External validity:** over months, do probe-certified repairs measurably reduce failure rates in production traces? (The ultimate test; the append-only `RUN` store exists so this can be answered later.)
 - **Proxy failure modes:** when does compliance parity fail as a proxy — migrations where the config was followed on both models but outcome quality still shifted?
 
-### 3.7 Glossary
+---
+
+## Glossary
 
 | Term | Meaning |
 |---|---|
