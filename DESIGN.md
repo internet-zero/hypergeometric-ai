@@ -64,7 +64,43 @@ Three principles hold the system together:
 
 ## 3. System overview
 
-### 3.1 The pipeline
+### 3.1 The three-phase architecture
+
+The system's job — *make config X fit model Y, provably* — decomposes irreducibly into three operations: you cannot measure a blob (need a testable representation first), you cannot safely change what you haven't measured (blind rewriting is the known-failed approach), and measurement without action plus proof is just a report. Hence three phases:
+
+```mermaid
+flowchart LR
+    P1["REPRESENT<br/>steps 1–3<br/>split · clean · build probes"] --> P2["MEASURE<br/>step 4<br/>the ablation grid + stats"]
+    P2 --> P3["TRANSFORM & CERTIFY<br/>steps 5–7<br/>repair · smoke · certify"]
+    P3 -- "re-verify" --> P2
+```
+
+The phase boundaries are natural, not cosmetic — they fall exactly where the system's properties change:
+
+| Property | REPRESENT (1–3) | MEASURE (4) | TRANSFORM (5–7) |
+|---|---|---|---|
+| Touches the config? | read-only | read-only | **writes** |
+| Compute cost | cheap (text ops + generation) | **the bulk** (target-model runs) | targeted |
+| Output lifetime | durable assets (directives, probes) | per model-pair verdicts | shipped artifacts |
+| Invalidated by | config changes | config, model, or traffic drift | a failed re-measure |
+| Needs governance? | no | no | **yes** (review, versioning, rollback) |
+
+The single most important line in the system is the 4→5 boundary: everything before it is read-only and safe to run anytime; everything after it mutates the config and needs governance.
+
+**MEASURE is a service, not a step.** It is invoked by at least four callers: initial certification, repair verification (does the rewrite land in "keep"?), re-certification as traces accumulate, and **drift monitoring** — same config, same nominal model, months later: has the provider silently changed the model underneath? The same probe sets answer all four questions.
+
+Wake events map one-to-one onto phases (see §3.3):
+
+```text
+config changed        →  re-run REPRESENT (re-parse, re-probe the delta)
+new model released    →  re-run MEASURE   (grids on the new candidate)
+MEASURE finds breaks  →  run    TRANSFORM (repair, smoke, certify)
+fresh traces landed   →  REPRESENT absorbs them; MEASURE re-certifies
+```
+
+The seven steps below are the operational grain within these phases — kept because each has distinct inputs, outputs, and failure modes, which makes them checkpointable and debuggable. Architecture in three phases, implementation in seven steps — the same way a compiler is front end / middle / back end architecturally and a dozen passes operationally.
+
+### 3.2 The pipeline
 
 ```mermaid
 flowchart TD
@@ -72,7 +108,7 @@ flowchart TD
     TR[("Production traces<br/>(incumbent model)")] --> S2
     TR --> S3
 
-    subgraph PIPELINE["The seven stages"]
+    subgraph PIPELINE["The seven steps (REPRESENT 1–3 · MEASURE 4 · TRANSFORM 5–7)"]
         S1["1 PARSE<br/>split config into atomic directives"] --> S2["2 STATIC PASS<br/>dedupe, contradictions,<br/>implicit-contract extraction"]
         S2 --> S3["3 PROBE SYNTHESIS<br/>generate + prune scenario sets"]
         S3 --> S4["4 MEASURE<br/>ablation grid on both models"]
@@ -93,7 +129,7 @@ flowchart TD
     KB -.-> S5
 ```
 
-### 3.2 The pipeline is itself an agent
+### 3.3 The pipeline is itself an agent
 
 Structurally, Hypergeometric is a **meta-agent**: an agent whose "user" is another agent's config. It is a deterministic workflow (the steps are known, so control flow is fixed) whose organs are LLM calls — a parser, a scenario generator, a judge, a merger. It runs **ambient**: asleep until an event wakes it.
 
