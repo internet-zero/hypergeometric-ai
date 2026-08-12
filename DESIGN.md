@@ -358,6 +358,24 @@ Every number in a report is backed by one of the following. None of it is exotic
 | 3,000 | ≤ 0.1% |
 | for 10⁻⁹ | ≈ 3 × 10⁹ trials — infeasible |
 
+### 6.1a Detection power vs. certification bounds (two questions, one curve)
+
+The same zero-failure evidence supports two different statements; the system uses both, and reports must never conflate them.
+
+- **Detection power** (fixes the defect rate, asks about the sample): *"IF the true violation rate were ≥ p, what is the chance n clean probes would have missed it entirely?"* Binomial: (1−p)ⁿ. For p = 10%, missing everything at 10⁻⁹ requires n ≥ ln(10⁻⁹)/ln(0.9) ≈ **197 probes**. Finite-population (hypergeometric) version for a fixed archive: with 10 bad among 100 and 84 audited, P[miss all] = C(90,84)/C(100,84) ≈ 4.6×10⁻¹⁰ — fewer draws needed than binomial because sampling without replacement is more informative.
+- **Certification bound** (fixes the observation, asks about the rate): *"n clean probes observed — what rates remain consistent with that?"* Rule of three: ≤ 3/n at 95% confidence.
+
+Both are points on one curve — P[zero failures in n=200 | true rate p]:
+
+| If the true violation rate were… | Chance 200 clean probes missed it |
+|---|---|
+| 10% | ~10⁻⁹ — gross breakage cannot hide |
+| 3% | ~0.2% |
+| 1.5% | ~5% — the 95%-confidence boundary |
+| 0.5% | ~37% — 200 probes cannot rule this out |
+
+**Usage:** detection power sizes probe sets in REPRESENT ("~200 probes guarantee a badly broken rule cannot slip past MEASURE"); certification bounds word the claims in CERTIFY ("violation rate ≤ 1.5% at 95% confidence on this probe distribution"). Caveats carried from the urn model: model outputs are stochastic, so a "bad" scenario fails probabilistically (hence k-repeats and rates, not booleans), and every n is *effective* n — post-dedupe, genuinely distinct probes.
+
 Corollary: testing one's way to avionics-grade reliability is infeasible (Butler & Finelli). It is also unnecessary here: the LLM compliance regime is 90–99.9%, quantified honestly.
 
 ### 6.2 Binomial vs. hypergeometric
