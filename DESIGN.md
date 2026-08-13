@@ -300,6 +300,16 @@ flowchart TD
 
 **The migration report is the diff of the two grids** (incumbent vs. candidate). The incumbent's grid is the control group: without it, "this rule scores badly on the new model" cannot be split into *broke because of the switch* (fix it) vs. *never worked anywhere* (delete it; nothing regressed).
 
+**Coverage map — what MEASURE certifies, by config zone.** Any real agent's config divides into three zones with different instruments and different coverage strength:
+
+| Zone | Example (an insights agent) | Instrument | Coverage |
+|---|---|---|---|
+| Rule-like directives | query guardrails, schema discipline, output format, tool-use rules | ablation grid | **full** — the method's home turf |
+| Executable generative output | MongoDB aggregation pipelines, SQL, code, API calls | execution-parity probes | **strongest** — semantic parity, the runtime is the referee |
+| Judgment / narrative residue | which analysis to run when vague, how the insight is narrated | judge probes (lower confidence) + external evals where they exist | **partial** — the stated boundary (threat 3) |
+
+Agents rich in the first two zones — tool-calling and data agents — are the ideal customers; zone-3-heavy agents (open-ended conversational/creative) are the declared weak case. Where an outcome eval bank already exists, it stacks on top as the zone-3 layer rather than competing with the method.
+
 > **Worked example — the grid (compliance out of 100 paired probes):**
 >
 > | Directive | Model A: with / without | Model B: with / without | Verdict for Model B |

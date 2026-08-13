@@ -29,10 +29,12 @@ The outcome: a migration that's measured instead of guessed, with receipts.
 
 > **The name** comes from the hypergeometric distribution — a piece of statistics used when checking a sample and drawing conclusions about the whole. It reflects the project's rule: no claim without the math to back it.
 
-## More
+## Repo contents
 
-The full technical design lives in **[DESIGN.md](DESIGN.md)**.
+- **[DESIGN.md](DESIGN.md)** — the full design, derived from first principles: eight forced moves → four laws → three phases → statistics → threats → roadmap → glossary
+- **[MILESTONE-0.md](MILESTONE-0.md)** — the first experiment, specified to be runnable: protocol, call budgets, planted controls, go/no-go gates
+- **[DECISIONS.md](DECISIONS.md)** — the decision log: what was decided, why it was forced, what it costs
 
 ## Status
 
-Design phase. Next milestone: a hand-run proof on one real agent across two models.
+Design complete. Next: run Milestone 0 — the weekend experiment that both demos the method on a real config and tests its own foundations.
