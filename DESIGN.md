@@ -7,7 +7,7 @@ Statistical certification and porting of agent configurations across models, wit
 ## Contents
 
 1. **[Introduction](#1-introduction)** — [problem](#11-the-problem) · [impact](#12-impact) · [solution direction](#13-solution-direction)
-2. **[Solution](#2-solution)** — [first principles](#21-from-first-principles-eight-forced-moves) · [three phases](#22-the-three-phases) · [pipeline](#23-the-pipeline) · [worked example](#25-the-worked-example) · [phase 1: represent](#26-phase-1-represent) · [phase 2: measure](#27-phase-2-measure) · [phase 3: transform and certify](#28-phase-3-transform-and-certify) · [statistics](#29-statistics) · [data model](#210-data-model) · [knowledge base](#211-the-knowledge-base) · [prior art & landscape](#212-prior-art-and-landscape) · [threats](#213-assumptions-and-threats-to-validity) · [scope & roadmap](#214-scope-and-roadmap) · [open questions](#215-open-questions) · [glossary](#216-glossary)
+2. **[Solution](#2-solution)** — [first principles](#21-from-first-principles-eight-forced-moves) · [three phases](#22-the-three-phases) · [pipeline](#23-the-pipeline) · [worked example](#25-the-worked-example) · [phase 1: represent](#26-phase-1-represent) · [phase 2: measure](#27-phase-2-measure) · [phase 3: transform and certify](#28-phase-3-transform-and-certify) · [statistics](#29-statistics) · [data model](#210-data-model) · [knowledge base](#211-the-knowledge-base) · [prior art & landscape](#212-prior-art-and-landscape) · [threats](#213-assumptions-and-threats-to-validity) · [scope, roadmap & milestone 0](#214-scope-and-roadmap) · [decision log](#215-decision-log) · [open questions](#216-open-questions) · [glossary](#217-glossary)
 
 ---
 
@@ -211,7 +211,7 @@ Directive types drive probe design downstream:
 
 > **Worked example.** The prompt fragment parses into six directives R1–R6 (JSON output; export filter; missing-data disclosure; 150-word limit; recipient confirmation; baseline statement), plus additional directives from each tool description. Each carries `{id, type, text, source: {file, span}}`.
 
-**Notes.** Not all prompt content is rule-like — personas, background context, worked examples. These parse into `style`/context blocks and are handled by judge-scored probes or carried as-is; the decomposition does not force everything to be a rule. Milestone 0 uses hand-decomposition; automated parsing quality is an open question ([open questions](#215-open-questions)).
+**Notes.** Not all prompt content is rule-like — personas, background context, worked examples. These parse into `style`/context blocks and are handled by judge-scored probes or carried as-is; the decomposition does not force everything to be a rule. Milestone 0 uses hand-decomposition; automated parsing quality is an open question ([open questions](#216-open-questions)).
 
 #### 1b — Static pass (detection only, no model calls, no edits)
 
@@ -544,7 +544,70 @@ Honest inventory. None known-fatal; all measurable — **but on different clocks
 | 2 — Porter | TRANSFORM: repair funnel, assembly, smoke, ledger | Certified auto-migration |
 | 3 — Flywheel | Knowledge base, trace mining, implicit-contract extraction at scale, sequential-testing optimization | The moat |
 
-### 2.15 Open questions
+#### Milestone 0 — the proof experiment (protocol)
+
+The first weekend of work, specified so it can be executed without re-deriving anything. Two jobs at once: **demo the method on a real config** and **test threat 1** (decomposition independence). If it fails its gates, stop and rethink before building anything expensive.
+
+*What it does and does not test:* reliability, discriminative power, and interaction size — **yes**; probe→traffic transfer (threat 2) — **no** (needs a trace-rich agent + temporal backtest); quality-residue size (threat 3) — **no** (needs an outcome reference).
+
+*Prerequisites:* two API-accessible chat models ("A" incumbent stand-in, "B" candidate); one real agent config (borrowed, not written for this test); no production traces required (tier-2 probes synthesized as long conversations — a stated realism limitation at this milestone).
+
+*Day 1 — Represent, by hand:*
+
+1. Hand-decompose the config into ~20 atomic rules (sidesteps the parsing open question)
+2. Select the 5 most mechanically checkable rules (format, tool-argument, confirmation); no judge rules at milestone 0
+3. **Plant two control rules** — the instrument's self-test:
+   - *planted-redundant* (a rule the model certainly does natively, e.g. "always respond in English") — must land in cell ① *delete*
+   - *planted-load-bearing* (an arbitrary detectable rule the model would never do unprompted, e.g. "end every response with §DONE§") — must land in cell ② *keep*
+   - either misclassified ⇒ harness bug; fix before interpreting anything else
+4. Write one small mechanical checker per rule
+5. Generate ~40 probe candidates per rule (with a generator model ≠ A, B), dedupe to ~30 distinct, drop blind probes; mix ~20 tier-1 + ~10 tier-2
+
+*Day 2 — Measure and analyze:*
+
+6. Run the grid on 7 rules (5 real + 2 planted): 30 probes × {present, placebo} × {A, B} × k=3 ≈ 2,500 calls
+7. Re-run identically once (reliability check): +2,500 calls
+8. Pair-ablate 5 rule-pairs (both rules placebo-filled): ≈ 900 calls — total ≈ 6,000 calls, tens of dollars
+9. Analyze: Wilson intervals per rule × arm × model; cell assignments; A-vs-B grid diff (the mini migration report); retest comparison; pair-vs-single deltas; control outcomes
+
+*Go / no-go gates:*
+
+| Gate | Pass | Fail action |
+|---|---|---|
+| Controls | planted-redundant → ①, planted-load-bearing → ②, both models | any miss = harness bug — fix first |
+| Reliability | zero verdict flips between runs among non-borderline rules (CI not spanning the threshold) | 1 flip → investigate; ≥2 → method is noise at this n: raise n or stop |
+| Discriminative power | ≥1 real rule lands in *delete* or *rewrite* | all "keep" → add rules; if still nothing, grid lacks sensitivity at n=30 |
+| Independence (coarse) | ≥4 of 5 pairs: pair effect ≈ sum of singles, within CI noise | systematic super-additivity → cluster/joint testing needed before scaling |
+
+*Interpretation discipline:* at n=30, rates near a cell threshold flip between runs from sampling noise alone — only non-overlapping-CI flips count against the reliability gate.
+
+*Deliverables (committed to the repo):* `results/grid.md`, `results/retest.md`, `results/pairs.md`, `results/controls.md`, and a verdict paragraph: proceed to Milestone 1 / fix and repeat / stop. Success looks like: controls classified correctly, verdicts stable, at least one dead or ignored rule found in a config everyone assumed was fine, pair effects roughly additive — the demo and the validation are the same table.
+
+### 2.15 Decision log
+
+Key decisions, with the reasoning that forced them and what each costs.
+
+**D1 — Eval-free by construction (config-as-spec).** *Why:* most production agents have no evals; an eval dependency excludes the market and reintroduces the cost the project exists to remove. *Cost:* claims limited to compliance; boundary stated openly (threat 3).
+
+**D2 — Behavior decides; reading only filters.** No fit verdict is ever issued from text — not by embeddings, not by judges; they organize and triage only. *Why:* what a model obeys is a fact about its weights, invisible in text. *Cost:* every decision costs target-model runs; the funnels exist to conserve them.
+
+**D3 — Three phases, bounded by the read/write line; MEASURE as a callable service.** *Why:* the boundaries fall exactly where cost, risk, output lifetime, and governance change — and the service framing yields re-certification and drift monitoring for free. *Cost:* none identified; replaced an earlier 7-stage framing that was operational detail posing as architecture.
+
+**D4 — Detect early, edit late.** Twin/conflict detection runs before measurement but never edits; all edits happen in TRANSFORM with evidence. *Why:* twins mask each other under ablation (false *delete* verdicts on both) — the experiment design must know the config's structure first; but editing from reading alone is blind rewriting, the known-failed approach. *Cost:* MEASURE must support equivalence-class ablation and joint conflict-pair measurement.
+
+**D5 — Placebo ablation.** "Removed" = same-length neutral filler, never deletion. *Why:* deletion confounds the rule's content with prompt-length and position shifts. *Cost:* negligible harness complexity.
+
+**D6 — Statistics are mandatory.** Detection power sizes probe sets (~200 → a ≥10%-broken rule escapes with ~10⁻⁹ probability); rule-of-three bounds word certificates (200 clean → ≤1.5% at 95%); McNemar on paired runs; Benjamini–Hochberg across rules; dedupe keeps effective n honest. *Why:* otherwise reports are vibes with numbers attached. *Cost:* borderline rules need more samples (mitigated by sequential stopping).
+
+**D7 — Text canonical, vectors disposable.** Pipeline pins its own standalone embedder; all artifacts store source text; indexes are rebuildable caches. *Why:* vectors survive no migration; text survives all. LLM migration must never invalidate stored state. *Cost:* embedder upgrades trigger a cheap re-embed.
+
+**D8 — Execution-parity probes for executable outputs.** Run both models' outputs (Mongo/SQL/code/API calls) against the same snapshot environment; compare results, not text. *Why:* execution is a free oracle — equal results = semantic equivalence, no ground truth needed. *Cost:* needs a snapshot environment and normalization; snapshot equivalence ≠ universal (seed adversarial data).
+
+**D9 — Honest validation clocks.** Milestone 0 claims threat 1 only; threat 2 needs a temporal backtest on a trace-rich agent; threat 3 needs an outcome reference. *Why:* an earlier draft overclaimed the weekend experiment; a certification product cannot afford overclaimed self-validation. *Cost:* the full validity story takes months, stated plainly.
+
+**D10 — v1 scope: MCP tool-calling agents, report-first.** *Why:* rule-dense tool agents are where coverage is strongest and pain concentrates; measurement alone is already sellable. *Cost:* conversational/creative agents explicitly out of v1.
+
+### 2.16 Open questions
 
 - **Directive parsing quality:** how reliably can an LLM decompose arbitrary prompts into genuinely atomic, non-overlapping directives? (Milestone 0 sidesteps via hand-decomposition; milestone 1 must solve it.)
 - **Interaction coverage:** is one whole-config smoke pass enough, or do high-risk directive *pairs* (identified how — 1b flags? shared trigger conditions?) deserve targeted joint probes as a rule?
@@ -553,7 +616,7 @@ Honest inventory. None known-fatal; all measurable — **but on different clocks
 - **External validity:** over months, do probe-certified repairs measurably reduce failure rates in production traces? (The ultimate test; the append-only `RUN` store exists so this can be answered later.)
 - **Proxy failure modes:** when does compliance parity fail as a proxy — migrations where the config was followed on both models but outcome quality still shifted?
 
-### 2.16 Glossary
+### 2.17 Glossary
 
 | Term | Meaning |
 |---|---|
