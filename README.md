@@ -33,7 +33,11 @@ The outcome: a migration that's measured instead of guessed, with receipts.
 
 Everything lives in **[DESIGN.md](DESIGN.md)** — the full design derived from first principles: eight forced moves → four laws → three phases → statistics → threats and assumptions → roadmap with the Milestone-0 protocol → decision log → glossary.
 
-Prefer slides? **[pitch-deck.pptx](pitch-deck.pptx)** — the idea in nine plain-language slides.
+Companion artifacts live in **[artifacts/](artifacts/)**:
+
+- **[pitch-deck.pptx](artifacts/pitch-deck.pptx)** — the idea in six plain-language slides
+- **[explainer.html](artifacts/explainer.html)** — the solution and its flow, in plain words
+- **[idea-stage-check.html](artifacts/idea-stage-check.html)** — the idea assessed against the Founder's Playbook idea-stage criteria
 
 ## Status
 

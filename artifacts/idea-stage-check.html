@@ -1,0 +1,255 @@
+<title>Hypergeometric — Idea-Stage Check</title>
+<style>
+  :root {
+    --paper: #ffffff;
+    --ink: #232838;
+    --muted: #5c6478;
+    --head: #1e2761;
+    --rule-line: #d9deea;
+    --card: #f3f5fa;
+    --good: #0e8f6f;
+    --warn: #9a6b08;
+    --bad: #c04b45;
+    --chip-good-bg: #e2f3ec;
+    --chip-warn-bg: #faf0d8;
+    --chip-bad-bg: #f9e8e6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #15171f;
+      --ink: #e6e9f2;
+      --muted: #9aa3b8;
+      --head: #b9c8f5;
+      --rule-line: #333a4d;
+      --card: #1e2230;
+      --good: #3cc9a0;
+      --warn: #e0b45c;
+      --bad: #e58680;
+      --chip-good-bg: #17352c;
+      --chip-warn-bg: #3a2f18;
+      --chip-bad-bg: #3a2422;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #15171f;
+    --ink: #e6e9f2;
+    --muted: #9aa3b8;
+    --head: #b9c8f5;
+    --rule-line: #333a4d;
+    --card: #1e2230;
+    --good: #3cc9a0;
+    --warn: #e0b45c;
+    --bad: #e58680;
+    --chip-good-bg: #17352c;
+    --chip-warn-bg: #3a2f18;
+    --chip-bad-bg: #3a2422;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+    line-height: 1.65;
+    margin: 0;
+    padding: 3rem 1.25rem 4rem;
+  }
+  main { max-width: 44rem; margin: 0 auto; }
+
+  .eyebrow {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.75rem;
+  }
+  h1 { font-size: 1.9rem; line-height: 1.25; color: var(--head); margin: 0 0 0.75rem; text-wrap: balance; }
+  .lede { font-size: 1.02rem; color: var(--muted); margin: 0 0 2rem; }
+  h2 { font-size: 1.25rem; color: var(--head); margin: 2.5rem 0 0.75rem; text-wrap: balance; }
+  h3 { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 0.95rem; color: var(--head); margin: 1.5rem 0 0.4rem; }
+  p { margin: 0 0 1rem; }
+  ul, ol { margin: 0 0 1rem; padding-left: 1.3rem; }
+  li { margin-bottom: 0.5rem; }
+  .quiet { color: var(--muted); font-size: 0.92rem; }
+
+  .chip {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 0.12rem 0.5rem;
+    border-radius: 0.25rem;
+    white-space: nowrap;
+  }
+  .c-good { color: var(--good); background: var(--chip-good-bg); }
+  .c-warn { color: var(--warn); background: var(--chip-warn-bg); }
+  .c-bad  { color: var(--bad);  background: var(--chip-bad-bg); }
+
+  .verdict-box {
+    background: var(--card);
+    border-radius: 0.4rem;
+    padding: 1.1rem 1.35rem;
+    margin: 1.5rem 0 2rem;
+  }
+  .verdict-box p { margin: 0; }
+
+  figure { margin: 1.75rem 0; }
+  figure svg { max-width: 100%; height: auto; display: block; }
+  figcaption {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem;
+  }
+
+  .tablewrap { overflow-x: auto; margin: 1.25rem 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+  th {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--muted); text-align: left; font-weight: 600;
+    padding: 0.5rem 0.9rem 0.5rem 0; border-bottom: 1px solid var(--rule-line);
+  }
+  td { padding: 0.6rem 0.9rem 0.6rem 0; border-bottom: 1px solid var(--rule-line); vertical-align: top; }
+  td:first-child { font-weight: 600; }
+
+  .box { background: var(--card); border-radius: 0.4rem; padding: 1rem 1.25rem; margin: 1.25rem 0; }
+  .box p:last-child, .box ul:last-child { margin-bottom: 0; }
+
+  footer {
+    margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule-line);
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 0.82rem; color: var(--muted);
+  }
+  a { color: var(--head); }
+</style>
+
+<main>
+  <p class="eyebrow">Hypergeometric × The Founder’s Playbook</p>
+  <h1>Idea-stage check: where the idea stands, honestly</h1>
+  <p class="lede">Hypergeometric assessed against the Idea Stage chapter of Anthropic’s <em>Founder’s Playbook: Building an AI-Native Startup</em> (2026) — its goal, exit criteria, named failure modes, and recommended exercises.</p>
+
+  <div class="verdict-box">
+    <p><strong>Verdict: mid-Idea stage.</strong> Technical de-risking is ahead of schedule — the design, threat analysis, and competitive map are unusually rigorous for this stage. But the playbook’s exit currency is <em>qualitative evidence from real human conversations</em>, and none has been collected. Nothing here says stop. It says: buy the market evidence as cheaply as you’re already buying the technical evidence.</p>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 880 90" role="img" aria-label="Startup lifecycle bar with four stages — Idea, MVP, Launch, Scale — and a marker placed midway through the Idea stage.">
+      <g fill="none" stroke="currentColor" stroke-width="1.3">
+        <rect x="10"  y="34" width="205" height="30" rx="6"/>
+        <rect x="228" y="34" width="205" height="30" rx="6" opacity="0.45"/>
+        <rect x="446" y="34" width="205" height="30" rx="6" opacity="0.45"/>
+        <rect x="664" y="34" width="205" height="30" rx="6" opacity="0.45"/>
+      </g>
+      <g font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="currentColor">
+        <text x="112" y="53" text-anchor="middle" font-weight="600">Idea</text>
+        <text x="330" y="53" text-anchor="middle" opacity="0.55">MVP</text>
+        <text x="548" y="53" text-anchor="middle" opacity="0.55">Launch</text>
+        <text x="766" y="53" text-anchor="middle" opacity="0.55">Scale</text>
+      </g>
+      <circle cx="118" cy="20" r="5" style="fill:var(--warn)"/>
+      <line x1="118" y1="25" x2="118" y2="34" stroke="currentColor" stroke-width="1.3"/>
+      <text x="130" y="24" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" fill="currentColor" opacity="0.8">you are here — solution designed, problem not yet field-validated</text>
+    </svg>
+    <figcaption>The playbook’s four stages. Exit from Idea requires problem-solution fit — established by conversations, not by design depth.</figcaption>
+  </figure>
+
+  <h2>The playbook’s bar for leaving the Idea stage</h2>
+  <p>Exit = <strong>problem-solution fit</strong>: “qualitative evidence, primarily from real human conversations, that you’re solving a real problem for real people — before you start building the thing that solves it.” Three questions, all must be yes:</p>
+
+  <div class="tablewrap">
+    <table>
+      <tr><th>Exit question</th><th>Status</th><th>Why</th></tr>
+      <tr>
+        <td>1. Is the problem real and specific?</td>
+        <td><span class="chip c-warn">PARTIAL</span></td>
+        <td>Specific and testable on paper — DESIGN.md names who (teams running production agents), the trigger (monthly model releases), and what they do today (don’t switch, or switch blind). But the playbook’s bar asks for named people, frequency, severity, and current workarounds — <em>from interviews</em>. Zero conversations so far.</td>
+      </tr>
+      <tr>
+        <td>2. Does the solution address the <em>actual</em> problem?</td>
+        <td><span class="chip c-bad">UNPROVEN</span></td>
+        <td>“Not the problem you originally assumed, but the one the validation process revealed.” Validation hasn’t run, so the actual problem hasn’t had a chance to differ from the assumed one. Plausible divergences: buyers may want outcome quality, not compliance parity; the pain may be ongoing prompt maintenance, not migration events; trust in an automated certificate is untested.</td>
+      </tr>
+      <tr>
+        <td>3. Enough signal to justify building?</td>
+        <td><span class="chip c-bad">NOT YET</span></td>
+        <td>Current evidence is analytical (a validated-but-unclaimed category, strong first-principles derivation). The playbook counts that as research, not signal. Signal = target-profile humans describing this pain unprompted and reacting to the solution concept.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h2>Scorecard against the playbook’s idea-stage activities</h2>
+
+  <div class="tablewrap">
+    <table>
+      <tr><th>Playbook activity</th><th>Status</th><th>Assessment</th></tr>
+      <tr>
+        <td>Sharpen the problem hypothesis until testable</td>
+        <td><span class="chip c-good">STRONG</span></td>
+        <td>The hypothesis is precise in the playbook’s sense — the “finance managers spend 4+ hours” template maps cleanly to “teams can’t verify agent behavior across a model swap; most have no evals; so they overpay or gamble.” What’s missing is only the numbers interviews supply.</td>
+      </tr>
+      <tr>
+        <td>Pressure-test with disconfirming evidence</td>
+        <td><span class="chip c-warn">HALF-DONE</span></td>
+        <td>Threats 1–4 and the decision log in DESIGN.md are genuine adversarial discipline — rare at this stage. But every threat targets <em>validity</em> (does the method work), none targets <em>demand</em> (will anyone pay). The devil’s advocate has only been pointed at the machine, not the market.</td>
+      </tr>
+      <tr>
+        <td>Map the competitive landscape by tier</td>
+        <td><span class="chip c-good">STRONG</span></td>
+        <td>Done to playbook standard: direct (Narrow AI, Bedrock one-way migration), adjacent heavyweight (Databricks Agent Bricks), adjacent (eval platforms, routers), research state — with the unclaimed gaps named. Missing: the “strongest case for each competitor” exercise (see checklist) and buyer/budget mapping.</td>
+      </tr>
+      <tr>
+        <td>Trend analysis (tailwinds / headwinds)</td>
+        <td><span class="chip c-warn">PARTIAL</span></td>
+        <td>“Why now” is argued (release cadence, deprecations, price cuts). No explicit headwind pass — the strongest one: if configs become auto-generated (DSPy-style optimizers, provider-managed agent runtimes), migration = regenerate, and the certification need mutates.</td>
+      </tr>
+      <tr>
+        <td>Plan and run customer discovery</td>
+        <td><span class="chip c-bad">MISSING</span></td>
+        <td>No target profile beyond one sentence, no interview framework, no outreach, no interviews. This is the single biggest gap — and the entire remaining exit condition.</td>
+      </tr>
+      <tr>
+        <td>Design the solution concept &amp; its heaviest assumptions</td>
+        <td><span class="chip c-good">STRONG</span></td>
+        <td>The playbook’s “three assumptions your design depends on most” exercise effectively exists: threat 1 (rules can be tested one at a time), threat 2 (probes transfer to real traffic), threat 3 (compliance parity ≈ what buyers need) — each with a named instrument and an honest validation clock.</td>
+      </tr>
+      <tr>
+        <td>Build a lightweight prototype</td>
+        <td><span class="chip c-warn">PLANNED</span></td>
+        <td>Milestone 0 is exactly the playbook’s “single core interaction” — the migration report on a real config, a weekend and tens of dollars, with go/no-go gates. One reframe needed: the playbook says the prototype is a <em>prop for conversations</em>. M0’s output should be put in front of five target-profile humans; their reaction to the report is the idea-stage evidence. The grid gates the tech; the reactions gate the business.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h2>The three idea-stage failure modes, applied</h2>
+
+  <h3>1 · Mistaking building for validating <span class="chip c-warn">AT RISK — in design form</span></h3>
+  <p>The playbook warns about prototypes standing in for validation. Hypergeometric’s version of the trap is <em>design</em> standing in for validation: a 57&nbsp;KB DESIGN.md, a decision log, a glossary — and zero conversations. The derivation quality is real, but the playbook is explicit: “the prototype becomes a reason to believe the hypothesis was right all along, without ever testing whether it’s actually true.” Replace “prototype” with “design document” and it lands squarely.</p>
+
+  <h3>2 · Premature scaling <span class="chip c-good">AVOIDED</span></h3>
+  <p>The roadmap is properly gated: proof before certifier, certifier before porter, report-first scope, explicit go/no-go gates, “dashboards deliberately out.” No execution has run ahead of validation — the risk here is the opposite one (all thinking, no contact).</p>
+
+  <h3>3 · Loss of objectivity <span class="chip c-warn">MIXED</span></h3>
+  <p>Unusually honest about validity (threats section reads like a hostile reviewer wrote it). Silent about demand — there is no written case for “nobody buys this,” which is the one confirmation bias the design can’t self-correct. The playbook’s antidote applies: point the same adversarial tooling at the market case.</p>
+
+  <h2>What the playbook would have you do next — the exit checklist</h2>
+
+  <ol>
+    <li><strong>Write the field-testable hypothesis with blanks.</strong> “Teams running ≥1 production tool-calling agent face a forced model decision ≥&nbsp;__ times/year; the last one cost __ engineer-days or was deferred entirely; they currently verify with __.” The blanks get filled by interviews, not by search.</li>
+    <li><strong>Run 10–15 discovery interviews with people who lived a migration.</strong> Target profile: engineers or platform leads who own a production agent and have been through a model swap, deprecation, or price-forced downgrade. Ask about the <em>past</em>, never the future: “Tell me about the last time you moved an agent to a new model — what broke, what did you check, what did it cost?” · “What happened the last time a model you depend on was deprecated?” · “Walk me through whatever checklist you used.” Not: “would you use a tool that…”</li>
+    <li><strong>Hunt disconfirming evidence on the market side, explicitly.</strong> Look for: teams whose switches were uneventful (breakage rare or tolerable); teams satisfied with 20 hand-written smoke prompts; teams that would not act on an automated certificate without a human re-check; the possibility the pain is an occasional <em>project</em> (consulting-shaped) rather than a recurring <em>product</em>. Any of these found repeatedly = revise, and the playbook calls that a win: “when research surfaces evidence that your idea needs revision, this is the signal to pivot.”</li>
+    <li><strong>Make the strongest case for each competitor.</strong> Why does Braintrust or LangSmith ship a “no-eval compliance mode” next quarter and win on distribution? Why are the labs’ free migration guides good enough? Why is Bedrock lock-in acceptable to an AWS shop? What survives that exercise (plausibly: vendor neutrality, the statistics-as-certificate posture, the accumulated per-model knowledge base) is the actual moat claim.</li>
+    <li><strong>Map the buyer, not just the user.</strong> Who feels the pain (the agent’s owner) vs. who holds budget (platform/eng leadership) vs. who can block (security — note DESIGN.md already flags trace privacy as an open question; that open question is a sales objection in disguise).</li>
+    <li><strong>Do the three-trends pass.</strong> Tailwinds: release cadence, deprecation policies, price wars. Headwinds: auto-optimizing frameworks making configs regenerable; providers shipping first-party migration tooling; agents moving into provider-managed runtimes. Mixed: eval-platform consolidation — channel or competitor. Assess each honestly against a two-year window.</li>
+    <li><strong>Run Milestone 0 — and use its output as the conversation prop.</strong> Keep the technical gates as designed. Then put the mini migration report in front of five target-profile people. If eyes light up at “R2 regressed 97→71, here’s the rewrite, re-certified at 96,” that’s problem-solution fit forming. If the reaction is “neat, but we’d just re-run our smoke prompts” — that’s the revision signal, obtained for tens of dollars.</li>
+  </ol>
+
+  <div class="box">
+    <p><strong>Suggested exit rule.</strong> Proceed to the MVP stage (Milestone 1 — the automated certifier) only when both are true: Milestone 0 passes its go/no-go gates, <em>and</em> a majority of interviews confirm the pain is recurring, with at least a handful of “run this on our agent” asks. One weekend of API calls plus two weeks of conversations buys the whole answer.</p>
+  </div>
+
+  <h2>Bottom line</h2>
+  <p>Measured against the playbook, Hypergeometric is a well-run Idea-stage project with an inverted risk profile: most founders at this stage have talked to twenty people and thought for two days; this one has thought for two months and talked to nobody. The playbook’s core sentence applies verbatim — “these conversations themselves are the real evidence.” The design work already done makes the conversations cheap, sharp, and easy to arrange around a concrete artifact. Do them before writing the certifier.</p>
+
+  <footer>
+    Assessed against: Anthropic, <em>The Founder’s Playbook: Building an AI-Native Startup</em> (2026), ch. 3 “Idea Stage,” pp. 8–14. Subject: <a href="https://github.com/internet-zero/hypergeometric-ai">github.com/internet-zero/hypergeometric-ai</a> (DESIGN.md).
+  </footer>
+</main>

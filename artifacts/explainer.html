@@ -1,0 +1,309 @@
+<title>Hypergeometric, in plain words</title>
+<style>
+  :root {
+    --paper: #ffffff;
+    --ink: #232838;
+    --muted: #5c6478;
+    --head: #1e2761;
+    --rule-line: #d9deea;
+    --card: #f3f5fa;
+    --keep: #0e8f6f;
+    --rewrite: #c04b45;
+    --delete: #4a69c9;
+    --chip-keep-bg: #e2f3ec;
+    --chip-rewrite-bg: #f9e8e6;
+    --chip-delete-bg: #e8edfa;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #15171f;
+      --ink: #e6e9f2;
+      --muted: #9aa3b8;
+      --head: #b9c8f5;
+      --rule-line: #333a4d;
+      --card: #1e2230;
+      --keep: #3cc9a0;
+      --rewrite: #e58680;
+      --delete: #92aaf0;
+      --chip-keep-bg: #17352c;
+      --chip-rewrite-bg: #3a2422;
+      --chip-delete-bg: #222c47;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #15171f;
+    --ink: #e6e9f2;
+    --muted: #9aa3b8;
+    --head: #b9c8f5;
+    --rule-line: #333a4d;
+    --card: #1e2230;
+    --keep: #3cc9a0;
+    --rewrite: #e58680;
+    --delete: #92aaf0;
+    --chip-keep-bg: #17352c;
+    --chip-rewrite-bg: #3a2422;
+    --chip-delete-bg: #222c47;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+    line-height: 1.65;
+    margin: 0;
+    padding: 3rem 1.25rem 4rem;
+  }
+  main { max-width: 42rem; margin: 0 auto; }
+
+  .eyebrow {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.75rem;
+  }
+  h1 {
+    font-size: 1.9rem;
+    line-height: 1.25;
+    color: var(--head);
+    margin: 0 0 0.75rem;
+    text-wrap: balance;
+  }
+  .lede { font-size: 1.05rem; color: var(--muted); margin: 0 0 2.5rem; }
+
+  h2 {
+    font-size: 1.25rem;
+    color: var(--head);
+    margin: 2.5rem 0 0.75rem;
+    text-wrap: balance;
+  }
+  p { margin: 0 0 1rem; }
+  ul { margin: 0 0 1rem; padding-left: 1.25rem; }
+  li { margin-bottom: 0.45rem; }
+  em { color: inherit; }
+
+  .quiet { color: var(--muted); font-size: 0.92rem; }
+
+  .verdict {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 0.1rem 0.5rem;
+    border-radius: 0.25rem;
+    white-space: nowrap;
+  }
+  .v-keep    { color: var(--keep);    background: var(--chip-keep-bg); }
+  .v-rewrite { color: var(--rewrite); background: var(--chip-rewrite-bg); }
+  .v-delete  { color: var(--delete);  background: var(--chip-delete-bg); }
+
+  figure { margin: 2rem 0; }
+  figure svg { max-width: 100%; height: auto; display: block; }
+  figcaption {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 0.6rem;
+  }
+
+  .tablewrap { overflow-x: auto; margin: 1.25rem 0; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.92rem;
+    font-variant-numeric: tabular-nums;
+  }
+  th {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    font-weight: 600;
+    padding: 0.5rem 0.9rem 0.5rem 0;
+    border-bottom: 1px solid var(--rule-line);
+  }
+  td {
+    padding: 0.55rem 0.9rem 0.55rem 0;
+    border-bottom: 1px solid var(--rule-line);
+    vertical-align: top;
+  }
+
+  .box {
+    background: var(--card);
+    border-radius: 0.4rem;
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+  }
+  .box p:last-child { margin-bottom: 0; }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule-line);
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  a { color: var(--head); }
+</style>
+
+<main>
+  <p class="eyebrow">Hypergeometric</p>
+  <h1>Switch your AI agent to a new model — and prove nothing broke</h1>
+  <p class="lede">What the system does and how it flows, in plain words.</p>
+
+  <h2>The problem, in one minute</h2>
+  <p>An AI agent runs on two things: a <em>model</em>, and a set of <em>written instructions</em> — the system prompt, the tool descriptions, the skills. The instructions were written by hand, tuned to whatever model was current at the time, and then left alone. Meanwhile new, better, cheaper models come out every month.</p>
+  <p>When you swap the model, three things happen quietly: some instructions keep working, some get ignored by the new model, and some turn out to have never been needed at all. Nobody can tell which is which by reading. So teams either stay on the old model and overpay, or switch and hope.</p>
+  <p>The standard advice — “run your test suite” — assumes a test suite. Most agents in production don’t have one, and building one takes months.</p>
+
+  <h2>The key idea</h2>
+  <p>Every instruction already says what correct behavior looks like. <em>“Always answer in JSON”</em> — the answer is JSON or it isn’t. <em>“Never export data without a filter”</em> — the filter is there or it isn’t. <em>“Keep answers under 150 words”</em> — count the words.</p>
+  <p>So nobody has to write tests. <strong>The instructions are the tests.</strong> The system reads each rule and generates the checks for it automatically.</p>
+
+  <h2>The flow</h2>
+
+  <figure>
+    <svg viewBox="0 0 1000 260" role="img" aria-label="Flow: agent instructions are split into single rules; each rule is tested with and without it on both the old and new model; each rule gets a verdict of delete, keep, or rewrite; rewritten rules go back into testing; the output is a new config with a report and a change ledger.">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <g fill="none" stroke="currentColor" stroke-width="1.4">
+        <rect x="14" y="72" width="158" height="76" rx="8"/>
+        <rect x="228" y="72" width="150" height="76" rx="8"/>
+        <rect x="434" y="60" width="196" height="100" rx="8"/>
+        <rect x="828" y="72" width="158" height="76" rx="8"/>
+      </g>
+      <g font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="currentColor">
+        <text x="93" y="103" text-anchor="middle" font-weight="600">Agent</text>
+        <text x="93" y="120" text-anchor="middle" font-weight="600">instructions</text>
+        <text x="93" y="138" text-anchor="middle" font-size="11" opacity="0.75">prompt · tool docs · skills</text>
+
+        <text x="303" y="103" text-anchor="middle" font-weight="600">Single rules</text>
+        <text x="303" y="121" text-anchor="middle" font-size="11" opacity="0.75">one testable</text>
+        <text x="303" y="136" text-anchor="middle" font-size="11" opacity="0.75">rule each</text>
+
+        <text x="532" y="88" text-anchor="middle" font-weight="600">The experiment</text>
+        <text x="532" y="107" text-anchor="middle" font-size="11" opacity="0.75">hundreds of scenarios</text>
+        <text x="532" y="123" text-anchor="middle" font-size="11" opacity="0.75">rule in vs. rule out</text>
+        <text x="532" y="139" text-anchor="middle" font-size="11" opacity="0.75">old model vs. new model</text>
+
+        <text x="907" y="100" text-anchor="middle" font-weight="600">New config</text>
+        <text x="907" y="119" text-anchor="middle" font-size="11" opacity="0.75">+ report with counts</text>
+        <text x="907" y="135" text-anchor="middle" font-size="11" opacity="0.75">+ change ledger</text>
+      </g>
+
+      <!-- verdict chips -->
+      <g font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700">
+        <rect x="686" y="62" width="92" height="26" rx="6" style="fill:var(--chip-delete-bg)"/>
+        <text x="732" y="79" text-anchor="middle" style="fill:var(--delete)">DELETE</text>
+        <rect x="686" y="97" width="92" height="26" rx="6" style="fill:var(--chip-keep-bg)"/>
+        <text x="732" y="114" text-anchor="middle" style="fill:var(--keep)">KEEP</text>
+        <rect x="686" y="132" width="92" height="26" rx="6" style="fill:var(--chip-rewrite-bg)"/>
+        <text x="732" y="149" text-anchor="middle" style="fill:var(--rewrite)">REWRITE</text>
+      </g>
+
+      <!-- arrows -->
+      <g stroke="currentColor" stroke-width="1.4" fill="none">
+        <line x1="172" y1="110" x2="220" y2="110" marker-end="url(#arr)"/>
+        <line x1="378" y1="110" x2="426" y2="110" marker-end="url(#arr)"/>
+        <line x1="630" y1="110" x2="678" y2="110" marker-end="url(#arr)"/>
+        <line x1="778" y1="110" x2="820" y2="110" marker-end="url(#arr)"/>
+        <path d="M 732 158 L 732 210 L 532 210 L 532 168" marker-end="url(#arr)"/>
+      </g>
+      <g font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="10.5" fill="currentColor" opacity="0.75">
+        <text x="196" y="98" text-anchor="middle">split</text>
+        <text x="402" y="98" text-anchor="middle">test</text>
+        <text x="654" y="98" text-anchor="middle">count</text>
+        <text x="799" y="98" text-anchor="middle">ship</text>
+        <text x="632" y="203" text-anchor="middle">rewritten rules go back in — fix &amp; re-test</text>
+      </g>
+    </svg>
+    <figcaption>The whole system: split the instructions, test each rule both ways on both models, give each rule a verdict, re-test the fixes, ship with proof.</figcaption>
+  </figure>
+
+  <p><strong>1 — Split.</strong> The instructions are broken into single rules — “always answer in JSON”, “never export without a filter” — each one small enough to test, fix, and explain on its own.</p>
+  <p><strong>2 — Test.</strong> For each rule, the system generates hundreds of varied scenarios: simple direct asks, long messy conversations, pushy users arguing against the rule. Each scenario runs four ways — with the rule in and with it taken out, on the old model and on the new one. Same scenarios everywhere, so the comparison is fair. Then it counts how often each model followed the rule.</p>
+  <p><strong>3 — Verdict.</strong> Two questions decide each rule’s fate on the new model:</p>
+
+  <div class="tablewrap">
+    <table>
+      <tr>
+        <th>Follows the rule when it’s there?</th>
+        <th>…and when it’s taken out?</th>
+        <th>Verdict</th>
+      </tr>
+      <tr>
+        <td>Yes</td>
+        <td>Yes — behaves the same without it</td>
+        <td><span class="verdict v-delete">DELETE</span>&nbsp; the model does this naturally; the rule is dead weight</td>
+      </tr>
+      <tr>
+        <td>Yes</td>
+        <td>No — breaks without it</td>
+        <td><span class="verdict v-keep">KEEP</span>&nbsp; the rule is doing real work</td>
+      </tr>
+      <tr>
+        <td>No</td>
+        <td>No</td>
+        <td><span class="verdict v-rewrite">REWRITE</span>&nbsp; the model ignores this phrasing</td>
+      </tr>
+    </table>
+  </div>
+
+  <p><strong>4 — Fix.</strong> For each broken rule, the system writes many alternative phrasings — different wording, different placement (maybe the rule belongs in the tool’s own description, not the prompt), checklist instead of prose. It runs the best candidates against the hardest scenarios and keeps what the new model <em>actually obeys</em> — never what merely reads well. The winner is re-tested on the full scenario set, and at the end the whole rebuilt config gets one more pass together, because rules can interact.</p>
+  <p><strong>5 — Certify.</strong> Out come three things: the ported config, a migration report where every claim is a count (“followed 97 times out of 100”), and a change ledger — every edit with its before/after numbers.</p>
+
+  <h2>A tiny example</h2>
+  <p>Numbers are “times followed, out of 100 scenarios”, with the rule present:</p>
+
+  <div class="tablewrap">
+    <table>
+      <tr><th>Rule</th><th>Old model</th><th>New model</th><th>Verdict</th></tr>
+      <tr>
+        <td>“Always answer in JSON”</td>
+        <td>98</td>
+        <td>99 <span class="quiet">(96 even without the rule)</span></td>
+        <td><span class="verdict v-delete">DELETE</span></td>
+      </tr>
+      <tr>
+        <td>“Never export without a filter”</td>
+        <td>97</td>
+        <td>71</td>
+        <td><span class="verdict v-rewrite">REWRITE</span></td>
+      </tr>
+      <tr>
+        <td>“Say so when data is missing”</td>
+        <td>93</td>
+        <td>95</td>
+        <td><span class="verdict v-keep">KEEP</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <p>The export rule regressed on the new model. After rewriting it as a short checklist inside the tool’s own description, it re-tested at 96 out of 100 — and that before/after pair goes into the ledger as proof.</p>
+
+  <div class="box">
+    <p><strong>One more trick: catching habits nobody wrote down.</strong> Old models often do good things no instruction asks for — always showing units in tables, for example. The system watches the old agent’s real traffic, spots these reliable habits, and writes them down as new rules <em>before</em> the switch. Otherwise they vanish silently with the old model, and no test would ever notice.</p>
+  </div>
+
+  <h2>Why the numbers can be trusted</h2>
+  <ul>
+    <li>Enough scenarios per rule that a badly broken rule cannot slip through by luck.</li>
+    <li>Both models see exactly the same scenarios — differences are real, not sampling noise.</li>
+    <li>Every rate ships with a confidence range, and borderline rules get more samples instead of a coin-flip verdict.</li>
+    <li>Nothing is ever changed because the text “looks wrong” — only measured behavior can delete or rewrite a rule.</li>
+  </ul>
+
+  <h2>Where it stands</h2>
+  <p>The design is complete. Next step is a weekend-sized proof on a real agent config — tens of dollars of API calls with clear go/no-go gates — then an automated version that produces the read-only migration report.</p>
+
+  <footer>
+    Full design: <a href="https://github.com/internet-zero/hypergeometric-ai">github.com/internet-zero/hypergeometric-ai</a> — DESIGN.md. Named for the hypergeometric distribution: the math of proving claims about the whole from a sample.
+  </footer>
+</main>
