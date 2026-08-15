@@ -74,8 +74,14 @@ def assemble_prompt(base_prompt: str, planted: list[Rule]) -> str:
 
 
 def placebo_ablate(prompt: str, rule_text: str) -> str:
-    if rule_text not in prompt:
+    count = prompt.count(rule_text)
+    if count == 0:
         raise ValueError(f"rule text not found verbatim in prompt: {rule_text[:80]!r}")
+    if count > 1:
+        raise ValueError(
+            f"rule text appears {count} times — ablation requires a unique match, "
+            f"or the surviving copy silently keeps the rule alive: {rule_text[:80]!r}"
+        )
     filler = (FILLER_SENTENCE * (len(rule_text) // len(FILLER_SENTENCE) + 1))[: len(rule_text)]
     return prompt.replace(rule_text, filler, 1)
 

@@ -3,7 +3,7 @@
 Requires OPENAI_API_KEY, access to the models under test, and the
 gitignored local/ config bundle (full agent config: system prompt, MCP tool
 descriptions, skills). Never runs in CI — pyproject addopts ignores
-tests/agent/, matching asato-svc's convention for env-dependent tests.
+tests/agent/, following the standard convention for env-dependent tests.
 
 Run manually:
     OPENAI_API_KEY=... pytest tests/agent/ -s

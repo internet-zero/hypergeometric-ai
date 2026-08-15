@@ -88,18 +88,18 @@ async def run_grid(
             for idx, probe in enumerate(probes[rule.id]):
                 for arm, prompt, arm_tools in arm_setup:
                     for model in (model_a, model_b):
-                        for _ in range(k):
+                        for trial in range(k):
                             task = group.create_task(
                                 run_cell(client, semaphore, model, prompt, probe, arm_tools)
                             )
-                            jobs.append((rule, idx, arm, model, task))
+                            jobs.append((rule, idx, arm, model, trial, task))
     results: list[RunResult] = []
-    for rule, idx, arm, model, task in jobs:
+    for rule, idx, arm, model, trial, task in jobs:
         outcome = task.result()
         if outcome is None:
-            results.append(RunResult(rule.id, idx, arm, model, None, "call failed"))
+            results.append(RunResult(rule.id, idx, arm, model, None, "call failed", trial))
             continue
         text, calls = outcome
         ok, detail = run_checker(rule, text, calls)
-        results.append(RunResult(rule.id, idx, arm, model, ok, detail))
+        results.append(RunResult(rule.id, idx, arm, model, ok, detail, trial))
     return results

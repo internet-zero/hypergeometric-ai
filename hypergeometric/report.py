@@ -21,12 +21,14 @@ def arm_stats(results: list[RunResult], rule_id: str, arm: str, model: str) -> A
 def paired_discordants(
     results: list[RunResult], rule_id: str, model_a: str, model_b: str
 ) -> tuple[int, int]:
-    by_probe: dict[int, dict[str, bool]] = {}
+    # Pair on (probe_idx, trial) so k > 1 repeats stay distinct pairs instead
+    # of overwriting each other.
+    by_pair: dict[tuple[int, int], dict[str, bool]] = {}
     for r in results:
         if r.rule_id == rule_id and r.arm == "with" and r.complied is not None:
-            by_probe.setdefault(r.probe_idx, {})[r.model] = r.complied
-    b = sum(1 for v in by_probe.values() if v.get(model_a) is True and v.get(model_b) is False)
-    c = sum(1 for v in by_probe.values() if v.get(model_a) is False and v.get(model_b) is True)
+            by_pair.setdefault((r.probe_idx, r.trial), {})[r.model] = r.complied
+    b = sum(1 for v in by_pair.values() if v.get(model_a) is True and v.get(model_b) is False)
+    c = sum(1 for v in by_pair.values() if v.get(model_a) is False and v.get(model_b) is True)
     return b, c
 
 
@@ -42,6 +44,7 @@ def write_report(
     model_a: str,
     model_b: str,
     threshold: float,
+    run_id: str | None = None,
 ) -> str:
     lines = [
         "# Migration grid — ablation results",
@@ -84,7 +87,10 @@ def write_report(
     report = "\n".join(lines) + "\n"
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "grid.md").write_text(report)
+    # raw.jsonl is append-only by design (the durable run archive); run_id
+    # keeps rows from different invocations distinguishable.
     with (out_dir / "raw.jsonl").open("a") as fh:
         for r in results:
-            fh.write(json.dumps(r.__dict__) + "\n")
+            row = {**r.__dict__, "run_id": run_id} if run_id else r.__dict__
+            fh.write(json.dumps(row) + "\n")
     return report

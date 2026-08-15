@@ -28,6 +28,16 @@ def test_tool_args_regex_vacuous_pass_when_uncalled() -> None:
     assert ok and "vacuous" in detail
 
 
+def test_missing_json_field_is_a_violation_not_compliance() -> None:
+    long_text = " ".join(["word"] * 300)
+    spec = {"kind": "word_limit", "json_field": "answer", "max_words": 150}
+    ok, detail = v.check_word_limit(f'{{"result": "{long_text}"}}', [], spec)
+    assert not ok and "absent" in detail
+    spec2 = {"kind": "regex_must_not", "json_field": "answer", "pattern": r"\$match"}
+    ok2, detail2 = v.check_regex_must_not('{"result": "used $match"}', [], spec2)
+    assert not ok2 and "absent" in detail2
+
+
 def test_tool_pipeline_single_key_ignores_calls_without_pipeline() -> None:
     spec = {"kind": "tool_pipeline_single_key", "tool": "query_mongodb"}
     calls = [{"name": "query_mongodb", "arguments": '{"collection": "x", "download": true}'}]

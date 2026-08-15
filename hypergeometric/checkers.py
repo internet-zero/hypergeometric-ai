@@ -27,9 +27,12 @@ def parse_json_loose(text: str) -> dict[str, Any] | None:
     for attempt in (candidate, text.strip()):
         try:
             obj = json.loads(attempt)
-            return obj if isinstance(obj, dict) else None
         except (json.JSONDecodeError, ValueError):
-            pass
+            continue
+        if isinstance(obj, dict):
+            return obj
+        # clean parse but not a dict (e.g. array-wrapped object) — fall
+        # through to the brace-extraction recovery below
     start, end = candidate.find("{"), candidate.rfind("}")
     if 0 <= start < end:
         try:
@@ -86,7 +89,10 @@ def _regex_target(text: str, spec: dict) -> tuple[str | None, str]:
     if obj is None:
         return None, "output is not a JSON object"
     value = _get_field(obj, spec["json_field"])
-    return value if isinstance(value, str) else json.dumps(value or ""), "ok"
+    if value is None:
+        # a missing field is a violation, never silent compliance
+        return None, f"field '{spec['json_field']}' absent"
+    return value if isinstance(value, str) else json.dumps(value), "ok"
 
 
 def check_regex_must_not(text: str, _tc: list[dict], spec: dict) -> tuple[bool, str]:
@@ -217,7 +223,7 @@ SELFTEST_CASES: list[tuple[dict, str, list[dict], str, list[dict]]] = [
     ),
     (
         {"kind": "field_required", "field": "analysisExplanation"},
-        '{"analysisExplanation": "queried saasSoftware"}',
+        '{"analysisExplanation": "queried softwareInventory"}',
         [],
         '{"analysisExplanation": ""}',
         [],
@@ -245,7 +251,7 @@ SELFTEST_CASES: list[tuple[dict, str, list[dict], str, list[dict]]] = [
     ),
     (
         {"kind": "list_item_regex", "field": "citations", "pattern": r'"ref":\s*"datasets\.'},
-        '{"citations": [{"displayName": "SaaS", "ref": "datasets.saasSoftware"}]}',
+        '{"citations": [{"displayName": "SaaS", "ref": "datasets.softwareInventory"}]}',
         [],
         '{"citations": []}',
         [],

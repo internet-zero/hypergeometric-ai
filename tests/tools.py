@@ -1,6 +1,6 @@
 """Shared test helpers: a scripted fake model client with known ground truth.
 
-Mirrors asato-svc's tests/tools.py convention — reusable helpers, no tests.
+Mirrors the production-repo tests/tools.py convention — reusable helpers, no tests.
 """
 
 from __future__ import annotations

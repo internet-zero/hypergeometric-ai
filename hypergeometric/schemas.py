@@ -39,6 +39,7 @@ class RunResult:
     model: str
     complied: bool | None  # None = call failed after retries
     detail: str
+    trial: int = 0  # repeat index when k > 1; pairing keys on (probe_idx, trial)
 
 
 @dataclass(frozen=True)

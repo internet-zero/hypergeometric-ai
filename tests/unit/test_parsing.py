@@ -15,6 +15,7 @@ def test_parse_json_loose() -> None:
     assert v.parse_json_loose('Sure! {"a": 1} hope that helps') == {"a": 1}
     assert v.parse_json_loose("no json here") is None
     assert v.parse_json_loose("[1, 2, 3]") is None
+    assert v.parse_json_loose('[{"a": 1}]') == {"a": 1}, "array-wrapped object is recoverable"
 
 
 def test_dedupe_collapses_near_paraphrases() -> None:
@@ -36,6 +37,12 @@ def test_placebo_ablate_preserves_length() -> None:
 def test_placebo_ablate_rejects_missing_text() -> None:
     with pytest.raises(ValueError):
         v.placebo_ablate("some prompt", "text that is not there")
+
+
+def test_placebo_ablate_rejects_duplicate_text() -> None:
+    prompt = "- Same rule.\nMiddle.\n- Same rule.\nEnd."
+    with pytest.raises(ValueError, match="appears 2 times"):
+        v.placebo_ablate(prompt, "- Same rule.")
 
 
 # ------------------------------------------------------------- build_arms

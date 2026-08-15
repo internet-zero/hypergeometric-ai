@@ -3,7 +3,7 @@
 The hypergeometric package lives at the repo root (one level up from
 tests/); insert it on sys.path before any test module imports so
 `import hypergeometric` resolves from every test package without requiring
-an editable install — mirroring asato-svc's conftest pattern of preparing
+an editable install — mirroring a production service repo's conftest pattern of preparing
 imports and fixtures ahead of pytest collection.
 """
 

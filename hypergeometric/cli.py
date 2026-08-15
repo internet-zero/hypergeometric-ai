@@ -16,6 +16,7 @@ import argparse
 import asyncio
 import os
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
 from hypergeometric.checkers import self_test
@@ -107,7 +108,10 @@ async def async_main(args: argparse.Namespace) -> int:
     if failed:
         print(f"warning: {failed}/{len(results)} calls failed and are excluded from n")
 
-    report = write_report(args.out, rules, results, args.model_a, args.model_b, args.threshold)
+    run_id = f"{args.model_a}->{args.model_b}@{datetime.now(UTC).isoformat(timespec='seconds')}"
+    report = write_report(
+        args.out, rules, results, args.model_a, args.model_b, args.threshold, run_id=run_id
+    )
     print()
     print(report)
     print(f"written: {args.out / 'grid.md'} and {args.out / 'raw.jsonl'}")
