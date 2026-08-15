@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import validate as v
+import hypergeometric as v
 
 
 def test_wilson_edge_cases() -> None:

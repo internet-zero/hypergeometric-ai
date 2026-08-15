@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hypergeometric"
+version = "0.1.0"
+description = "Statistical certification and porting of agent configurations across models, without an eval suite"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+live = ["openai>=1.50"]
+dev = ["pytest>=8.0", "black>=24.0", "isort>=5.13", "ruff>=0.6"]
+
+[project.scripts]
+hypergeometric = "hypergeometric.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["hypergeometric"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Live-grid tests under tests/agent/ are integration-style (require
+# OPENAI_API_KEY, access to the models under test, and the gitignored
+# local/ config bundle) and never run in CI. They're kept for local/manual
+# use; CI skips them. Run with: pytest tests/agent/ -s after exporting
+# the required env vars.
+addopts = "--ignore=tests/agent"
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]

@@ -11,8 +11,8 @@ import asyncio
 import tempfile
 from pathlib import Path
 
-import validate as v
-from tests.tools import DISTINCT_PROBES, FakeClient, GEN_MODEL, make_behavior
+import hypergeometric as v
+from tests.tools import DISTINCT_PROBES, GEN_MODEL, FakeClient, make_behavior
 
 
 def _run(example_rules, example_prompt):
@@ -32,8 +32,9 @@ def _run(example_rules, example_prompt):
             r.id: await v.generate_probes(client, GEN_MODEL, r, 8, "inventory agent")
             for r in all_rules
         }
-        results = await v.run_grid(client, all_rules, probes, full_prompt, tools, {},
-                                   "model-a", "model-b", 1)
+        results = await v.run_grid(
+            client, all_rules, probes, full_prompt, tools, {}, "model-a", "model-b", 1
+        )
         return probes, results
 
     probes, results = asyncio.run(go())
@@ -49,7 +50,7 @@ def test_end_to_end_grid(example_rules, example_prompt) -> None:
     report = v.write_report(out_dir, all_rules, results, "model-a", "model-b", 0.8)
 
     def row(rule_id: str) -> str:
-        return next(l for l in report.splitlines() if l.startswith(f"| {rule_id} "))
+        return next(line for line in report.splitlines() if line.startswith(f"| {rule_id} "))
 
     assert "**DELETE**" in row("R1-json-contract"), "B does JSON natively"
     assert "**REWRITE**" in row("R2-no-query-syntax"), "B leaks pipelines even with rule"

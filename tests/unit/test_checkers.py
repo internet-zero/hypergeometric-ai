@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import validate as v
+import hypergeometric as v
 
 
 def test_selftest_all_checkers_pass() -> None:
@@ -18,8 +18,12 @@ def test_every_registered_checker_has_a_selftest_case() -> None:
 
 
 def test_tool_args_regex_vacuous_pass_when_uncalled() -> None:
-    spec = {"kind": "tool_args_regex", "tool": "query_mongodb",
-            "pattern": r'"filename"', "must": True}
+    spec = {
+        "kind": "tool_args_regex",
+        "tool": "query_mongodb",
+        "pattern": r'"filename"',
+        "must": True,
+    }
     ok, detail = v.check_tool_args_regex("", [], spec)
     assert ok and "vacuous" in detail
 

@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 from types import SimpleNamespace
 
-import validate as v
+import hypergeometric as v
 
 GEN_MODEL = "fake-generator"
 LONG_ANSWER = " ".join(["word"] * 220)

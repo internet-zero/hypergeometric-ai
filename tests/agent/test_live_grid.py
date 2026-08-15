@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-import validate as v
+import hypergeometric as v
 
 LOCAL = Path(__file__).resolve().parents[2] / "local" / "agent-insights"
 
@@ -41,8 +41,7 @@ def test_live_small_grid(tmp_path: Path) -> None:
     skills = v.load_skills(LOCAL / "skills")
     planted = v.build_planted_rules()
     # Smoke scope: one cheap prompt rule + the load-bearing control.
-    subset = [next(r for r in rules if r.id == "R2-analysis-explanation-required"),
-              planted[1]]
+    subset = [next(r for r in rules if r.id == "R2-analysis-explanation-required"), planted[1]]
     full_prompt = v.assemble_prompt(base_prompt, planted)
     for rule in subset:
         v.build_arms(rule, full_prompt, tools, skills)
@@ -51,12 +50,14 @@ def test_live_small_grid(tmp_path: Path) -> None:
 
     async def go():
         probes = {
-            r.id: await v.generate_probes(client, v.DEFAULT_GENERATOR, r,
-                                          n_probes, base_prompt.splitlines()[0])
+            r.id: await v.generate_probes(
+                client, v.DEFAULT_GENERATOR, r, n_probes, base_prompt.splitlines()[0]
+            )
             for r in subset
         }
-        results = await v.run_grid(client, subset, probes, full_prompt, tools,
-                                   skills, model_a, model_b, 1)
+        results = await v.run_grid(
+            client, subset, probes, full_prompt, tools, skills, model_a, model_b, 1
+        )
         return results
 
     results = asyncio.run(go())

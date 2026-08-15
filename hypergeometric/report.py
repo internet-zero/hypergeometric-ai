@@ -1,0 +1,90 @@
+"""Aggregation and the migration-grid report."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from hypergeometric.schemas import ArmStats, Rule, RunResult
+from hypergeometric.stats import classify, mcnemar_exact, wilson_interval
+
+
+def arm_stats(results: list[RunResult], rule_id: str, arm: str, model: str) -> ArmStats:
+    rows = [
+        r
+        for r in results
+        if r.rule_id == rule_id and r.arm == arm and r.model == model and r.complied is not None
+    ]
+    return ArmStats(passed=sum(bool(r.complied) for r in rows), total=len(rows))
+
+
+def paired_discordants(
+    results: list[RunResult], rule_id: str, model_a: str, model_b: str
+) -> tuple[int, int]:
+    by_probe: dict[int, dict[str, bool]] = {}
+    for r in results:
+        if r.rule_id == rule_id and r.arm == "with" and r.complied is not None:
+            by_probe.setdefault(r.probe_idx, {})[r.model] = r.complied
+    b = sum(1 for v in by_probe.values() if v.get(model_a) is True and v.get(model_b) is False)
+    c = sum(1 for v in by_probe.values() if v.get(model_a) is False and v.get(model_b) is True)
+    return b, c
+
+
+def fmt_arm(s: ArmStats) -> str:
+    lo, hi = wilson_interval(s.passed, s.total)
+    return f"{s.passed}/{s.total} ({s.rate:.0%}, CI {lo:.0%}–{hi:.0%})"
+
+
+def write_report(
+    out_dir: Path,
+    rules: list[Rule],
+    results: list[RunResult],
+    model_a: str,
+    model_b: str,
+    threshold: float,
+) -> str:
+    lines = [
+        "# Migration grid — ablation results",
+        "",
+        f"Incumbent (A): `{model_a}` · Candidate (B): `{model_b}` · "
+        f"compliance threshold {threshold:.0%} · placebo ablation, k-paired probes",
+        "",
+        "| Rule | A with | A without | B with | B without | Verdict on B | McNemar A→B |",
+        "|---|---|---|---|---|---|---|",
+    ]
+    control_failures: list[str] = []
+    for rule in rules:
+        aw = arm_stats(results, rule.id, "with", model_a)
+        awo = arm_stats(results, rule.id, "without", model_a)
+        bw = arm_stats(results, rule.id, "with", model_b)
+        bwo = arm_stats(results, rule.id, "without", model_b)
+        verdict, borderline = classify(bw, bwo, threshold)
+        b, c = paired_discordants(results, rule.id, model_a, model_b)
+        p = mcnemar_exact(b, c)
+        flag = " ⚠ borderline" if borderline else ""
+        lines.append(
+            f"| {rule.id} | {fmt_arm(aw)} | {fmt_arm(awo)} | {fmt_arm(bw)} | "
+            f"{fmt_arm(bwo)} | **{verdict}**{flag} | b={b}, c={c}, p={p:.3f} |"
+        )
+        if rule.planted == "redundant" and verdict != "DELETE":
+            control_failures.append(
+                f"planted-redundant landed in {verdict} (expected DELETE) — harness bug?"
+            )
+        if rule.planted == "load_bearing" and verdict != "KEEP":
+            control_failures.append(
+                f"planted-load-bearing landed in {verdict} (expected KEEP) — harness bug?"
+            )
+    lines.append("")
+    lines.append("## Controls")
+    if control_failures:
+        lines.extend(f"- **FAIL**: {c}" for c in control_failures)
+        lines.append("- Do not interpret the real-rule verdicts until controls pass.")
+    else:
+        lines.append("- Both planted controls classified as expected. Instrument sane.")
+    report = "\n".join(lines) + "\n"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "grid.md").write_text(report)
+    with (out_dir / "raw.jsonl").open("a") as fh:
+        for r in results:
+            fh.write(json.dumps(r.__dict__) + "\n")
+    return report

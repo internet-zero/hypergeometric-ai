@@ -41,4 +41,4 @@ Companion artifacts live in **[artifacts/](artifacts/)**:
 
 ## Status
 
-Design complete. Milestone 0 in progress: **[prototype/](prototype/)** holds a single-script ablation harness (`validate.py`) that runs the grid on any config across two models — with planted-control self-tests, Wilson intervals, and McNemar pairing.
+Design complete. Milestone 0 in progress: the **[hypergeometric](hypergeometric/)** package is the ablation harness — it runs the grid on any config (system prompt, MCP tool descriptions, skills) across two models, with planted-control self-tests, Wilson intervals, and McNemar pairing. Usage and layout in **[HARNESS.md](HARNESS.md)**.

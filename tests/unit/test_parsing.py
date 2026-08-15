@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-import validate as v
+import hypergeometric as v
 
 
 def test_parse_json_loose() -> None:
@@ -43,11 +43,16 @@ def test_placebo_ablate_rejects_missing_text() -> None:
 PROMPT = "You are an assistant.\n- Always answer in JSON.\nEnd."
 RULE_LINE = "- Always answer in JSON."
 TOOLS = [
-    {"name": "export_csv",
-     "description": "Exports rows to CSV. BEFORE CALLING, verify: id_filter is set.",
-     "parameters": {"type": "object", "properties": {}}},
-    {"name": "other_tool", "description": "Unrelated.",
-     "parameters": {"type": "object", "properties": {}}},
+    {
+        "name": "export_csv",
+        "description": "Exports rows to CSV. BEFORE CALLING, verify: id_filter is set.",
+        "parameters": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "other_tool",
+        "description": "Unrelated.",
+        "parameters": {"type": "object", "properties": {}},
+    },
 ]
 
 
@@ -61,8 +66,12 @@ def test_build_arms_prompt_source() -> None:
 
 
 def test_build_arms_tool_source_ablates_only_that_description() -> None:
-    rule = v.Rule(id="r", text="BEFORE CALLING, verify: id_filter is set.",
-                  checker={"kind": "ascii_english"}, source="tool:export_csv")
+    rule = v.Rule(
+        id="r",
+        text="BEFORE CALLING, verify: id_filter is set.",
+        checker={"kind": "ascii_english"},
+        source="tool:export_csv",
+    )
     arms = v.build_arms(rule, PROMPT, TOOLS, {})
     assert arms.prompt_with == arms.prompt_without == PROMPT
     with_desc = next(t for t in arms.tools_with if t["name"] == "export_csv")["description"]
@@ -77,8 +86,9 @@ def test_build_arms_skill_source(fixtures_dir: Path) -> None:
     skills = v.load_skills(fixtures_dir / "skills")
     assert "mini-skill" in skills
     rule_text = "- Always name export files in snake_case based on the user's request."
-    rule = v.Rule(id="r", text=rule_text, checker={"kind": "ascii_english"},
-                  source="skill:mini-skill")
+    rule = v.Rule(
+        id="r", text=rule_text, checker={"kind": "ascii_english"}, source="skill:mini-skill"
+    )
     arms = v.build_arms(rule, PROMPT, TOOLS, skills)
     assert "## Skill: mini-skill (loaded)" in arms.prompt_with
     assert rule_text in arms.prompt_with
