@@ -40,6 +40,8 @@ class RunResult:
     complied: bool | None  # None = call failed after retries
     detail: str
     trial: int = 0  # repeat index when k > 1; pairing keys on (probe_idx, trial)
+    output: str = ""  # model response text (truncated for storage)
+    tool_calls: tuple[dict, ...] = ()  # captured calls, arguments truncated
 
 
 @dataclass(frozen=True)

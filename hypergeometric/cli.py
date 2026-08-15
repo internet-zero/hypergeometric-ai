@@ -30,7 +30,7 @@ from hypergeometric.config import (
 from hypergeometric.constants import DEFAULT_GENERATOR, DEFAULT_THRESHOLD
 from hypergeometric.grid import run_grid
 from hypergeometric.probes import generate_probes
-from hypergeometric.report import write_report
+from hypergeometric.report import write_probes, write_report
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
@@ -91,6 +91,9 @@ async def async_main(args: argparse.Namespace) -> int:
         return 1
     client = AsyncOpenAI()
 
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    run_id = f"{args.model_a}->{args.model_b}@{stamp}"
+
     print("generating probes…")
     agent_summary = base_prompt.splitlines()[0][:300]
     probes: dict[str, list[str]] = {}
@@ -99,6 +102,8 @@ async def async_main(args: argparse.Namespace) -> int:
             client, args.generator, rule, args.probes, agent_summary
         )
         print(f"  {rule.id}: {len(probes[rule.id])} distinct probes")
+    probes_file = args.out / f"probes-{stamp}.json"
+    write_probes(probes_file, run_id, probes)
 
     print("running grid…")
     results = await run_grid(
@@ -108,13 +113,12 @@ async def async_main(args: argparse.Namespace) -> int:
     if failed:
         print(f"warning: {failed}/{len(results)} calls failed and are excluded from n")
 
-    run_id = f"{args.model_a}->{args.model_b}@{datetime.now(UTC).isoformat(timespec='seconds')}"
     report = write_report(
         args.out, rules, results, args.model_a, args.model_b, args.threshold, run_id=run_id
     )
     print()
     print(report)
-    print(f"written: {args.out / 'grid.md'} and {args.out / 'raw.jsonl'}")
+    print(f"written: {args.out / 'grid.md'}, {args.out / 'raw.jsonl'}, and {probes_file}")
     return 0
 
 

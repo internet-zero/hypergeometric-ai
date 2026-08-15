@@ -25,6 +25,14 @@ def test_paired_discordants_keeps_repeats_distinct() -> None:
     assert (b, c) == (1, 0), "each (probe, trial) repeat must count as its own pair"
 
 
+def test_write_probes_persists_the_exam() -> None:
+    out = Path(tempfile.mkdtemp()) / "probes-x.json"
+    v.write_probes(out, "run-1", {"R1": ["question one", "question two"]})
+    doc = json.loads(out.read_text())
+    assert doc["run_id"] == "run-1"
+    assert doc["probes"]["R1"] == ["question one", "question two"]
+
+
 def test_write_report_stamps_run_id() -> None:
     rule = v.Rule(id="R", text="- Rule.", checker={"kind": "ascii_english"})
     results = [

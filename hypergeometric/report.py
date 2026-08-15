@@ -9,6 +9,16 @@ from hypergeometric.schemas import ArmStats, Rule, RunResult
 from hypergeometric.stats import classify, mcnemar_exact, wilson_interval
 
 
+def write_probes(path: Path, run_id: str, probes: dict[str, list[str]]) -> None:
+    """Persist the exact exam used for a run — the frozen, reusable asset.
+
+    Without this file a verdict can't be audited ("which question was probe
+    #7?") nor re-run against the identical probe set later.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"run_id": run_id, "probes": probes}, indent=1))
+
+
 def arm_stats(results: list[RunResult], rule_id: str, arm: str, model: str) -> ArmStats:
     rows = [
         r

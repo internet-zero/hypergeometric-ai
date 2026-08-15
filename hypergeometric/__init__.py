@@ -39,7 +39,13 @@ from hypergeometric.constants import (
 )
 from hypergeometric.grid import run_cell, run_grid, tools_payload
 from hypergeometric.probes import dedupe, generate_probes
-from hypergeometric.report import arm_stats, fmt_arm, paired_discordants, write_report
+from hypergeometric.report import (
+    arm_stats,
+    fmt_arm,
+    paired_discordants,
+    write_probes,
+    write_report,
+)
 from hypergeometric.schemas import Arms, ArmStats, Rule, RunResult
 from hypergeometric.stats import classify, mcnemar_exact, wilson_interval
 
@@ -81,6 +87,7 @@ __all__ = [
     "arm_stats",
     "fmt_arm",
     "paired_discordants",
+    "write_probes",
     "write_report",
     "Arms",
     "ArmStats",

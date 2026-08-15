@@ -45,6 +45,7 @@ def test_end_to_end_grid(example_rules, example_prompt) -> None:
     all_rules, probes, results = _run(example_rules, example_prompt)
     assert all(len(p) == len(DISTINCT_PROBES) for p in probes.values())
     assert all(r.complied is not None for r in results), "no failed calls offline"
+    assert all(r.output for r in results), "every result must carry the model's actual output"
 
     out_dir = Path(tempfile.mkdtemp())
     report = v.write_report(out_dir, all_rules, results, "model-a", "model-b", 0.8)

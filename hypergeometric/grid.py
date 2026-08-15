@@ -8,8 +8,21 @@ from typing import Any
 
 from hypergeometric.checkers import run_checker
 from hypergeometric.config import build_arms
-from hypergeometric.constants import CONCURRENCY, MAX_COMPLETION_TOKENS, RETRIES
+from hypergeometric.constants import (
+    CONCURRENCY,
+    MAX_COMPLETION_TOKENS,
+    RAW_ARGS_MAX_CHARS,
+    RAW_OUTPUT_MAX_CHARS,
+    RETRIES,
+)
 from hypergeometric.schemas import Rule, RunResult
+
+
+def _evidence_calls(calls: list[dict]) -> tuple[dict, ...]:
+    """Truncate tool-call arguments for the append-only evidence record."""
+    return tuple(
+        {"name": c["name"], "arguments": c["arguments"][:RAW_ARGS_MAX_CHARS]} for c in calls
+    )
 
 
 def tools_payload(tools: list[dict]) -> list[dict]:
@@ -101,5 +114,17 @@ async def run_grid(
             continue
         text, calls = outcome
         ok, detail = run_checker(rule, text, calls)
-        results.append(RunResult(rule.id, idx, arm, model, ok, detail, trial))
+        results.append(
+            RunResult(
+                rule.id,
+                idx,
+                arm,
+                model,
+                ok,
+                detail,
+                trial,
+                output=text[:RAW_OUTPUT_MAX_CHARS],
+                tool_calls=_evidence_calls(calls),
+            )
+        )
     return results
