@@ -28,11 +28,11 @@ don't read the rest.
 ## Run
 
 ```bash
-pip install -e ".[dev,live]"                 # python 3.11+
-python -m hypergeometric --selftest          # offline: verify all checkers
-python -m hypergeometric --prompt examples/example.prompt.txt \
+poetry install --extras live                 # python 3.11+
+poetry run hypergeometric --selftest         # offline: verify all checkers
+poetry run hypergeometric --prompt examples/example.prompt.txt \
     --rules examples/rules.example.yaml --dry-run
-OPENAI_API_KEY=... python -m hypergeometric \
+OPENAI_API_KEY=... poetry run hypergeometric \
     --prompt examples/example.prompt.txt --rules examples/rules.example.yaml \
     --model-a gpt-5.6-luna --model-b gpt-5.6-sol --probes 30
 ```
@@ -49,8 +49,8 @@ scripted fake client with known ground-truth verdicts), shared helpers in
 skipped in CI via `addopts` in `pyproject.toml`.
 
 ```bash
-pytest                                   # offline suite
-OPENAI_API_KEY=... pytest tests/agent/   # live smoke grid (needs local/ bundle)
+poetry run pytest                                   # offline suite
+OPENAI_API_KEY=... poetry run pytest tests/agent/   # live smoke grid (needs local/ bundle)
 ```
 
 ## Testing a private config

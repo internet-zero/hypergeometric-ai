@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["poetry-core>=2.0"]
+build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "hypergeometric"
@@ -15,21 +15,26 @@ dependencies = [
 
 [project.optional-dependencies]
 live = ["openai>=1.50"]
-dev = ["pytest>=8.0", "black>=24.0", "isort>=5.13", "ruff>=0.6"]
 
 [project.scripts]
 hypergeometric = "hypergeometric.cli:main"
 
-[tool.hatch.build.targets.wheel]
-packages = ["hypergeometric"]
+[tool.poetry]
+packages = [{ include = "hypergeometric" }]
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.0"
+black = ">=24.0"
+isort = ">=5.13"
+ruff = ">=0.6"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 # Live-grid tests under tests/agent/ are integration-style (require
 # OPENAI_API_KEY, access to the models under test, and the gitignored
 # local/ config bundle) and never run in CI. They're kept for local/manual
-# use; CI skips them. Run with: pytest tests/agent/ -s after exporting
-# the required env vars.
+# use; CI skips them. Run with: poetry run pytest tests/agent/ -s after
+# exporting the required env vars.
 addopts = "--ignore=tests/agent"
 
 [tool.black]
