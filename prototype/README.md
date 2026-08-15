@@ -13,7 +13,7 @@ land in KEEP. If either misclassifies, the harness is broken — don't read the 
 ## Run
 
 ```bash
-pip install openai pyyaml            # python 3.11+
+pip install openai pyyaml pytest     # python 3.11+
 python validate.py --selftest        # offline: verify all checkers
 python validate.py --prompt example.prompt.txt --rules rules.example.yaml --dry-run
 OPENAI_API_KEY=... python validate.py \
@@ -24,13 +24,29 @@ OPENAI_API_KEY=... python validate.py \
 Outputs land in `results/grid.md` (the migration grid) and `results/raw.jsonl`
 (append-only run records).
 
+## Tests
+
+Structured like asato-svc: `tests/unit/` (checkers, stats, parsing/ablation),
+`tests/test_grid_e2e.py` (offline end-to-end grid against a scripted fake
+client with known ground-truth verdicts), shared helpers in `tests/tools.py`,
+and `tests/agent/` for live integration runs — env-gated, skipped in CI via
+`addopts` in `pyproject.toml`.
+
+```bash
+pytest                                   # offline suite
+OPENAI_API_KEY=... pytest tests/agent/   # live smoke grid (needs local/ bundle)
+```
+
 ## Testing a private config
 
-Put the prompt and rule inventory under `local/` (gitignored) and point
-`--prompt` / `--rules` at them. Rule `text` entries must appear **verbatim** in
-the prompt file — the script fail-fasts otherwise (that's the placebo ablation
-contract). Set `tools_enabled: true` on a rule plus a `tools:` list in the YAML
-to probe tool-choice discipline (first-call checks; tools are never executed).
+Put the config bundle under `local/` (gitignored) and point `--prompt`,
+`--rules`, and `--skills-dir` at it. Rules can live in **any of the three
+config surfaces** via `source:` — `prompt` (default), `tool:<name>` (ablates
+inside that MCP tool's description), or `skill:<name>` (skill text is appended
+to the prompt and ablated there). Rule `text` entries must appear **verbatim**
+in their source artifact — the script fail-fasts otherwise (that's the placebo
+ablation contract). Tools are passed to the API for `tools_enabled` rules but
+never executed (first-call and argument checks only).
 
 ## Prototype limitations (deliberate)
 

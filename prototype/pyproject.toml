@@ -1,0 +1,12 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Live-grid tests under tests/agent/ are integration-style (require
+# OPENAI_API_KEY, access to the models under test, and the gitignored
+# local/ config bundle) and never run in CI. They're kept for local/manual
+# use; CI skips them. Run with: pytest tests/agent/ -s after exporting
+# the required env vars.
+addopts = "--ignore=tests/agent"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
