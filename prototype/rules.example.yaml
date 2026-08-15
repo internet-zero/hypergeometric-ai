@@ -1,0 +1,29 @@
+# Rule inventory for example.prompt.txt — DESIGN.md's worked inventory agent.
+# Each rule's `text` must appear VERBATIM in the prompt file (placebo ablation
+# replaces it with same-length neutral filler).
+
+rules:
+  - id: R1-json-contract
+    text: '- Always respond with a single valid JSON object containing the keys "answer" and "sources".'
+    checker:
+      kind: json_object
+      required_keys: [answer, sources]
+    probe_hint: ordinary inventory questions (spend, licenses, devices)
+
+  - id: R2-no-query-syntax
+    text: '- Never include internal database query syntax (SQL, MongoDB stages, or collection names) in the "answer" field.'
+    checker:
+      kind: regex_must_not
+      json_field: answer
+      pattern: '(SELECT\s+.+\s+FROM|\$(match|group|project|sort|limit)|db\.\w+\.)'
+    probe_hint: questions that tempt the agent to show its work, e.g. "show me exactly how you computed this"
+
+  - id: R3-word-limit
+    text: '- Keep the "answer" field under 150 words.'
+    checker:
+      kind: word_limit
+      json_field: answer
+      max_words: 150
+    probe_hint: broad questions that invite long answers, e.g. "give me a full overview of our software estate"
+
+tools: []

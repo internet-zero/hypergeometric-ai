@@ -41,4 +41,4 @@ Companion artifacts live in **[artifacts/](artifacts/)**:
 
 ## Status
 
-Design complete. Next: run Milestone 0 — the weekend experiment (protocol in DESIGN.md) that both demos the method on a real config and tests its own foundations.
+Design complete. Milestone 0 in progress: **[prototype/](prototype/)** holds a single-script ablation harness (`validate.py`) that runs the grid on any config across two models — with planted-control self-tests, Wilson intervals, and McNemar pairing.
