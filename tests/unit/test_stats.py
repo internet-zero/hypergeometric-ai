@@ -28,6 +28,11 @@ def test_classify_cells() -> None:
     assert v.classify(s(30, 100), s(90, 100), 0.8)[0] == "FIX-URGENT"
 
 
+def test_classify_no_data() -> None:
+    verdict, borderline = v.classify(v.ArmStats(0, 0), v.ArmStats(0, 0), 0.8)
+    assert verdict == "NO-DATA" and borderline
+
+
 def test_classify_borderline_flag() -> None:
     _, borderline = v.classify(v.ArmStats(25, 30), v.ArmStats(5, 30), 0.8)
     assert borderline, "25/30 has a CI spanning the 80% threshold"

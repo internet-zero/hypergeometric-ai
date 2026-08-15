@@ -29,6 +29,8 @@ def mcnemar_exact(b: int, c: int) -> float:
 
 def classify(with_stats: ArmStats, without_stats: ArmStats, threshold: float) -> tuple[str, bool]:
     """Return (verdict, borderline). Cells per DESIGN.md §2.7."""
+    if with_stats.total == 0 or without_stats.total == 0:
+        return "NO-DATA", True
     w_lo, w_hi = wilson_interval(with_stats.passed, with_stats.total)
     wo_lo, wo_hi = wilson_interval(without_stats.passed, without_stats.total)
     borderline = (w_lo < threshold < w_hi) or (wo_lo < threshold < wo_hi)

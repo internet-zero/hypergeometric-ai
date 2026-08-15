@@ -63,6 +63,11 @@ async def run_cell(
                 }
                 if tools:
                     kwargs["tools"] = tools_payload(tools)
+                    # GPT-5.x rejects function tools on /v1/chat/completions
+                    # while reasoning is on; shortcut: disable reasoning for
+                    # tool cells, switch to the responses API if fidelity to
+                    # reasoning-mode tool use starts to matter
+                    kwargs["reasoning_effort"] = "none"
                 resp = await client.chat.completions.create(**kwargs)
                 msg = resp.choices[0].message
                 calls = [
