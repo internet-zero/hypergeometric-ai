@@ -17,6 +17,7 @@ don't read the rest.
 | Module | Responsibility |
 |---|---|
 | `hypergeometric/schemas.py` | frozen dataclasses: `Rule`, `Arms`, `RunResult`, `ArmStats` |
+| `hypergeometric/constants.py` | tunables (threshold, concurrency, caps) + planted-control texts |
 | `hypergeometric/checkers.py` | mechanical compliance checkers + self-test cases |
 | `hypergeometric/stats.py` | Wilson intervals, exact McNemar, cell classification |
 | `hypergeometric/config.py` | rule/skill loading, source-aware placebo ablation |

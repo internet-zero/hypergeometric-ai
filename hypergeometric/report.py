@@ -72,6 +72,7 @@ def write_report(
         bw = arm_stats(results, rule.id, "with", model_b)
         bwo = arm_stats(results, rule.id, "without", model_b)
         verdict, borderline = classify(bw, bwo, threshold)
+        verdict_a, _ = classify(aw, awo, threshold)
         b, c = paired_discordants(results, rule.id, model_a, model_b)
         p = mcnemar_exact(b, c)
         flag = " ⚠ borderline" if borderline else ""
@@ -79,14 +80,15 @@ def write_report(
             f"| {rule.id} | {fmt_arm(aw)} | {fmt_arm(awo)} | {fmt_arm(bw)} | "
             f"{fmt_arm(bwo)} | **{verdict}**{flag} | b={b}, c={c}, p={p:.3f} |"
         )
-        if rule.planted == "redundant" and verdict != "DELETE":
-            control_failures.append(
-                f"planted-redundant landed in {verdict} (expected DELETE) — harness bug?"
-            )
-        if rule.planted == "load_bearing" and verdict != "KEEP":
-            control_failures.append(
-                f"planted-load-bearing landed in {verdict} (expected KEEP) — harness bug?"
-            )
+        # DESIGN.md control gate: planted verdicts must hold on BOTH models.
+        expected = {"redundant": "DELETE", "load_bearing": "KEEP"}.get(rule.planted or "")
+        if expected:
+            for label, model_verdict in (("A", verdict_a), ("B", verdict)):
+                if model_verdict != expected:
+                    control_failures.append(
+                        f"{rule.id} landed in {model_verdict} on model {label} "
+                        f"(expected {expected}) — harness bug?"
+                    )
     lines.append("")
     lines.append("## Controls")
     if control_failures:

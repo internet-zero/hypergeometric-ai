@@ -7,7 +7,7 @@ Statistical certification and porting of agent configurations across models, wit
 ## Contents
 
 1. **[Introduction](#1-introduction)** — [problem](#11-the-problem) · [impact](#12-impact) · [solution direction](#13-solution-direction)
-2. **[Solution](#2-solution)** — [first principles](#21-from-first-principles-eight-forced-moves) · [three phases](#22-the-three-phases) · [pipeline](#23-the-pipeline) · [worked example](#25-the-worked-example) · [phase 1: represent](#26-phase-1-represent) · [phase 2: measure](#27-phase-2-measure) · [phase 3: transform and certify](#28-phase-3-transform-and-certify) · [statistics](#29-statistics) · [data model](#210-data-model) · [knowledge base](#211-the-knowledge-base) · [prior art & landscape](#212-prior-art-and-landscape) · [threats](#213-assumptions-and-threats-to-validity) · [scope, roadmap & milestone 0](#214-scope-and-roadmap) · [decision log](#215-decision-log) · [open questions](#216-open-questions) · [glossary](#217-glossary)
+2. **[Solution](#2-solution)** — [first principles](#21-from-first-principles-eight-forced-moves) · [three phases](#22-the-three-phases) · [pipeline](#23-the-pipeline) · [meta-agent](#24-a-meta-agent-running-ambient) · [worked example](#25-the-worked-example) · [phase 1: represent](#26-phase-1-represent) · [phase 2: measure](#27-phase-2-measure) · [phase 3: transform and certify](#28-phase-3-transform-and-certify) · [statistics](#29-statistics) · [data model](#210-data-model) · [knowledge base](#211-the-knowledge-base) · [prior art & landscape](#212-prior-art-and-landscape) · [threats](#213-assumptions-and-threats-to-validity) · [scope, roadmap & milestone 0](#214-scope-and-roadmap) · [decision log](#215-decision-log) · [open questions](#216-open-questions) · [glossary](#217-glossary)
 
 ---
 
@@ -581,7 +581,7 @@ The first weekend of work, specified so it can be executed without re-deriving a
 
 *Interpretation discipline:* at n=30, rates near a cell threshold flip between runs from sampling noise alone — only non-overlapping-CI flips count against the reliability gate.
 
-*Deliverables (committed to the repo):* `results/grid.md`, `results/retest.md`, `results/pairs.md`, `results/controls.md`, and a verdict paragraph: proceed to Milestone 1 / fix and repeat / stop. Success looks like: controls classified correctly, verdicts stable, at least one dead or ignored rule found in a config everyone assumed was fine, pair effects roughly additive — the demo and the validation are the same table.
+*Deliverables:* `results/grid.md`, `results/retest.md`, `results/pairs.md`, `results/controls.md`, and a verdict paragraph: proceed to Milestone 1 / fix and repeat / stop. (The live `results/` directory is gitignored — runs may use private configs; the committed deliverables are sanitized copies made deliberately.) Success looks like: controls classified correctly, verdicts stable, at least one dead or ignored rule found in a config everyone assumed was fine, pair effects roughly additive — the demo and the validation are the same table.
 
 ### 2.15 Decision log
 

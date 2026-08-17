@@ -45,6 +45,20 @@ def test_placebo_ablate_rejects_duplicate_text() -> None:
         v.placebo_ablate(prompt, "- Same rule.")
 
 
+def test_load_rules_rejects_unknown_checker_kind(tmp_path: Path) -> None:
+    # Must fail at load time, before a single (paid) grid call is spent.
+    bad = tmp_path / "rules.yaml"
+    bad.write_text(
+        "rules:\n"
+        "  - id: R1\n"
+        "    text: '- Rule.'\n"
+        "    checker:\n"
+        "      kind: json_object_typo\n"
+    )
+    with pytest.raises(ValueError, match="unknown checker kind"):
+        v.load_rules(bad)
+
+
 # ------------------------------------------------------------- build_arms
 
 PROMPT = "You are an assistant.\n- Always answer in JSON.\nEnd."

@@ -10,6 +10,7 @@ from pathlib import Path
 
 import yaml
 
+from hypergeometric.checkers import CHECKERS
 from hypergeometric.constants import (
     FILLER_SENTENCE,
     PLANTED_LOAD_BEARING,
@@ -32,6 +33,12 @@ def load_rules(path: Path) -> tuple[list[Rule], list[dict]]:
         )
         for r in doc["rules"]
     ]
+    for rule in rules:
+        kind = rule.checker.get("kind")
+        if kind not in CHECKERS:
+            raise ValueError(
+                f"rule {rule.id}: unknown checker kind {kind!r} (known: {sorted(CHECKERS)})"
+            )
     if "tools_file" in doc:
         tools_doc = yaml.safe_load((path.parent / doc["tools_file"]).read_text())
         return rules, tools_doc.get("tools", [])

@@ -95,7 +95,7 @@ async def run_grid(
     k: int,
 ) -> list[RunResult]:
     semaphore = asyncio.Semaphore(CONCURRENCY)
-    jobs: list[tuple[Rule, int, str, str, asyncio.Task]] = []
+    jobs: list[tuple[Rule, int, str, str, int, asyncio.Task]] = []
     async with asyncio.TaskGroup() as group:
         for rule in rules:
             arms = build_arms(rule, full_prompt, tools, skills)
