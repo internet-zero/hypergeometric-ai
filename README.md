@@ -2,6 +2,12 @@
 
 **Safely move an AI agent from one model to another — and prove nothing broke.**
 
+[![CI](https://github.com/internet-zero/hypergeometric-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/internet-zero/hypergeometric-ai/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+No eval suite. No ground-truth labels. The agent's own config is the spec — every rule in it is a testable claim about behavior, and this system tests all of them, on both models, with statistics that survive an argument.
+
 ## The problem
 
 Every AI agent runs on two things: a model, and a set of written instructions (its system prompt, tool descriptions, and skills). Those instructions were written once, by hand, tuned to whatever model was current at the time — and then frozen, while new models keep shipping every month.
@@ -26,6 +32,18 @@ So the system:
 5. Produces a report where every claim is backed by counted results — plus a full change log of what was edited and why
 
 The outcome: a migration that's measured instead of guessed, with receipts.
+
+## What a verdict looks like
+
+The core artifact is the **migration grid** — per rule, compliance with the rule present vs. placebo-ablated, on the incumbent (A) and the candidate (B). Illustrative rows from the worked example in [DESIGN.md](DESIGN.md):
+
+| Rule | Model A: with / without | Model B: with / without | Verdict for B |
+|---|---|---|---|
+| "Always respond in valid JSON" | 98 / 41 | 99 / 96 | **DELETE** — B does JSON natively; the rule is dead weight |
+| "Never export without a filter" | 97 / 22 | **71** / 19 | **REWRITE** — real regression, B can't hear this phrasing |
+| "Always include units in tables" | 100 / 100 | 94 / 44 | **KEEP** — implicit habit of A, made explicit just in time |
+
+Every number ships with a Wilson confidence interval, every A-vs-B comparison with an exact McNemar test on paired probes, and two planted control rules self-test the instrument on every run.
 
 > **The name** comes from the hypergeometric distribution — a piece of statistics used when checking a sample and drawing conclusions about the whole. It reflects the project's rule: no claim without the math to back it.
 
