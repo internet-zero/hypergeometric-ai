@@ -1,0 +1,43 @@
+<svg viewBox="0 0 860 600" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" font-size="15">
+  <defs>
+    <clipPath id="t0"><rect x="46" y="67" width="0" height="22"><animate attributeName="width" values="0;9;18;27;36;45;54;63;72;81;90;99;108;117;126;135;144;153;162;171;180;189;198;207;216;225;234;243;252;261;270;279;288;297;306;315;324;333;342;351;360;369;378;387;396;405;414;423;432;441;450;459;468" calcMode="discrete" begin="0.4s" dur="1.6s" fill="freeze"/></rect></clipPath>
+  </defs>
+
+  <!-- window -->
+  <rect x="1" y="1" width="858" height="598" rx="12" fill="#0d1117" stroke="#30363d" stroke-width="1.5"/>
+  <circle cx="26" cy="24" r="7" fill="#ff5f57"/>
+  <circle cx="48" cy="24" r="7" fill="#febc2e"/>
+  <circle cx="70" cy="24" r="7" fill="#28c840"/>
+  <text x="430" y="29" text-anchor="middle" fill="#8b949e" font-size="13">hypergeometric — migration grid</text>
+  <line x1="1" y1="44" x2="859" y2="44" stroke="#21262d"/>
+
+  <!-- typed command -->
+  <text x="28" y="82" fill="#3fb950" opacity="0">$<set attributeName="opacity" to="1" begin="0.15s" fill="freeze"/></text>
+  <g clip-path="url(#t0)"><text x="46" y="82" fill="#e6edf3" textLength="468" lengthAdjust="spacing">hypergeometric --prompt agent.txt --rules rules.yaml</text></g>
+  <rect x="46" y="68" width="9" height="18" fill="#e6edf3" opacity="0"><set attributeName="opacity" to="0.85" begin="0.15s"/><animate attributeName="x" values="46;55;64;73;82;91;100;109;118;127;136;145;154;163;172;181;190;199;208;217;226;235;244;253;262;271;280;289;298;307;316;325;334;343;352;361;370;379;388;397;406;415;424;433;442;451;460;469;478;487;496;505;514" calcMode="discrete" begin="0.4s" dur="1.6s" fill="freeze"/><set attributeName="opacity" to="0" begin="2.2s" fill="freeze"/></rect>
+
+  <text x="28" y="114" opacity="0"><tspan fill="#8b949e">plan: 5 rules (3 real + 2 planted) x 30 probes x 2 arms x 2 models = 600 calls</tspan><set attributeName="opacity" to="1" begin="2.3s" fill="freeze"/></text>
+  <text x="28" y="140" opacity="0"><tspan fill="#8b949e">generating probes... running grid on </tspan><tspan fill="#79c0ff">model-A</tspan><tspan fill="#8b949e"> vs </tspan><tspan fill="#79c0ff">model-B</tspan><tspan fill="#8b949e"> ...</tspan><set attributeName="opacity" to="1" begin="2.8s" fill="freeze"/></text>
+
+  <!-- grid header -->
+  <g opacity="0"><text x="28" y="186" fill="#8b949e">Rule</text><text x="262" y="186" fill="#8b949e">A with/wo</text><text x="392" y="186" fill="#8b949e">B with/wo</text><text x="522" y="186" fill="#8b949e">Verdict on B</text><set attributeName="opacity" to="1" begin="3.2s" fill="freeze"/></g>
+  <line x1="28" y1="196" x2="832" y2="196" stroke="#21262d" opacity="0"><set attributeName="opacity" to="1" begin="3.2s" fill="freeze"/></line>
+    <g opacity="0"><text x="28" y="214" fill="#e6edf3">R1-json-contract</text><text x="262" y="214" fill="#8b949e">98 / 41</text><text x="392" y="214" fill="#8b949e">99 / 96</text><text x="522" y="214" fill="#58a6ff">DELETE</text><text x="646" y="214" fill="#8b949e">dead weight</text><set attributeName="opacity" to="1" begin="3.4s" fill="freeze"/></g>
+  <g opacity="0"><text x="28" y="241" fill="#e6edf3">R2-export-filter</text><text x="262" y="241" fill="#8b949e">97 / 22</text><text x="392" y="241" fill="#8b949e">71 / 19</text><text x="522" y="241" fill="#d29922">REWRITE</text><text x="646" y="241" fill="#8b949e">regression</text><set attributeName="opacity" to="1" begin="3.9s" fill="freeze"/></g>
+  <g opacity="0"><text x="28" y="268" fill="#e6edf3">R3-word-limit</text><text x="262" y="268" fill="#8b949e">88 / 30</text><text x="392" y="268" fill="#8b949e">95 / 61</text><text x="522" y="268" fill="#3fb950">KEEP</text><text x="646" y="268" fill="#8b949e">load-bearing</text><set attributeName="opacity" to="1" begin="4.4s" fill="freeze"/></g>
+  <g opacity="0"><text x="28" y="295" fill="#e6edf3">planted-redundant</text><text x="262" y="295" fill="#8b949e">control</text><text x="392" y="295" fill="#8b949e">control</text><text x="522" y="295" fill="#3fb950">DELETE ✓</text><set attributeName="opacity" to="1" begin="4.9s" fill="freeze"/></g>
+  <g opacity="0"><text x="28" y="322" fill="#e6edf3">planted-load-bearing</text><text x="262" y="322" fill="#8b949e">control</text><text x="392" y="322" fill="#8b949e">control</text><text x="522" y="322" fill="#3fb950">KEEP ✓</text><set attributeName="opacity" to="1" begin="5.2s" fill="freeze"/></g>
+
+  <text x="28" y="366" opacity="0"><tspan fill="#8b949e">controls sane · Wilson 95% CI · exact McNemar </tspan><tspan fill="#79c0ff">p = 0.011</tspan><tspan fill="#8b949e"> · BH-corrected</tspan><set attributeName="opacity" to="1" begin="5.7s" fill="freeze"/></text>
+
+  <!-- math panel -->
+  <g opacity="0">
+    <set attributeName="opacity" to="1" begin="6.3s" fill="freeze"/>
+    <rect x="28" y="394" width="804" height="176" rx="8" fill="#161b22" stroke="#30363d"/>
+    <text x="48" y="428" fill="#3fb950"># why ~200 probes — no claim without the math</text>
+  </g>
+  <text x="48" y="464" opacity="0"><tspan fill="#e6edf3">P[miss | p≥10%] = (1−p)ⁿ ≤ 10⁻⁹   ⇒   n ≥ ln 10⁻⁹ / ln 0.9 ≈ </tspan><tspan fill="#d2a8ff">197 → 200</tspan><set attributeName="opacity" to="1" begin="6.7s" fill="freeze"/></text>
+  <text x="48" y="498" opacity="0"><tspan fill="#e6edf3">P[miss all] = C(90,84) / C(100,84) ≈ </tspan><tspan fill="#d2a8ff">4.6×10⁻¹⁰</tspan><tspan fill="#8b949e">   (hypergeometric: N=100, K=10, n=84)</tspan><set attributeName="opacity" to="1" begin="7.1s" fill="freeze"/></text>
+  <text x="48" y="532" opacity="0"><tspan fill="#e6edf3">rule of three: 200 clean probes ⇒ violation rate </tspan><tspan fill="#d2a8ff">≤ 1.5% @ 95%</tspan><tspan fill="#8b949e">  confidence</tspan><set attributeName="opacity" to="1" begin="7.5s" fill="freeze"/></text>
+  <text x="48" y="556" opacity="0"><tspan fill="#8b949e">certified, not vibed — DESIGN.md §2.9</tspan><set attributeName="opacity" to="1" begin="7.9s" fill="freeze"/></text>
+</svg>

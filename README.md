@@ -6,6 +6,8 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+![The harness in action: the ablation grid classifies every rule, planted controls self-test the instrument, and the math backs the claims](assets/hero.svg)
+
 No eval suite. No ground-truth labels. The agent's own config is the spec — every rule in it is a testable claim about behavior, and this system tests all of them, on both models, with statistics that survive an argument.
 
 ## The problem
