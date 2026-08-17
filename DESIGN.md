@@ -438,7 +438,7 @@ flowchart TD
 
 **Multiple comparisons.** Testing 60 directives at 95% confidence produces ~3 false alarms by pure chance. Apply **Benjamini–Hochberg** across the directive set before any "regression" claim ships. Reports that skip this cry wolf.
 
-**Effective sample size.** Confidence intervals assume independent trials. Embedding-dedup of scenarios (1c) is what makes *n* honest. Residual generator bias means intervals should be read as slightly optimistic; conservative reporting rounds against the claim. Model outputs are stochastic — a "bad" scenario fails probabilistically, hence k-repeats and rates, never booleans.
+**Effective sample size.** Confidence intervals assume independent trials. Embedding-dedup of scenarios (1c) is what makes *n* honest. Residual generator bias means intervals should be read as slightly optimistic; conservative reporting rounds against the claim. Model outputs are stochastic — a "bad" scenario fails probabilistically, hence k-repeats and rates, never booleans. Note that k repeats of one probe are *correlated* trials: pooling probes × k into a single interval overstates n, so keep k = 1 (the harness default) or read intervals at probe granularity.
 
 ### 2.10 Data model
 
@@ -515,7 +515,7 @@ Unclaimed by anyone: eval-free operation (config-as-spec), directive-level decom
 
 Honest inventory. None known-fatal; all measurable — **but on different clocks.** The Milestone-0 experiment ([roadmap](#214-scope-and-roadmap)) tests threat 1 nearly for free (reliability, discriminative power, interaction size — at go/no-go resolution). Threat 2 requires a trace-rich agent and a temporal backtest. Threat 3 requires an outcome reference (an existing eval bank, or human grading, or months of telemetry). Each failure narrows the product rather than killing it: large interactions → joint/cluster testing (costlier, still works); poor transfer → scope to trace-rich agents with honestly-worded certificates; large residue → scope to rule-dense tool agents (the declared v1 scope already).
 
-**Threat 1 — Decomposition independence (weakest joint).** The ablation grid assumes rules can be tested one at a time. Prompts may not be that linear: removing rule A can change how the model treats rule B; removing text also shifts length and position of everything else. *Mitigations:* placebo filler instead of deletion; equivalence-class ablation for twins; measure interaction size directly by ablating selected **pairs** vs. singles — if pair effects ≈ sum of single effects, independence holds well enough. Open empirical question; no published answer.
+**Threat 1 — Decomposition independence (weakest joint).** The ablation grid assumes rules can be tested one at a time. Prompts may not be that linear: removing rule A can change how the model treats rule B; removing text also shifts length and position of everything else. *Mitigations:* placebo filler instead of deletion; equivalence-class ablation for twins; measure interaction size directly by ablating selected **pairs** vs. singles — if each rule's measured delta is unchanged by whether its partner is also ablated (cross-effect ≈ 0), independence holds well enough. (Raw "sum of single effects" is the wrong test: compliance deltas live on a bounded [0, 1] scale, so additivity cannot hold when single deltas are large.) Open empirical question; no published answer.
 
 **Threat 2 — Probe distribution transfer.** Generated scenarios + replayed traces approximate real traffic; they are not future traffic. Certification claims must be scoped: *"certified against this probe distribution,"* never *"guaranteed."* *Mitigations:* heavy trace blending; re-certification as traces accumulate. *Validation:* a **temporal backtest** — build probes from older traces, predict compliance, verify against held-out newer traffic. Requires an agent with real usage; untestable on a toy, and the most business-critical assumption for agents that have no traces yet. Shared by every testing methodology in existence; not disqualifying, but must be stated.
 
@@ -577,7 +577,7 @@ The first weekend of work, specified so it can be executed without re-deriving a
 | Controls | planted-redundant → ①, planted-load-bearing → ②, both models | any miss = harness bug — fix first |
 | Reliability | zero verdict flips between runs among non-borderline rules (CI not spanning the threshold) | 1 flip → investigate; ≥2 → method is noise at this n: raise n or stop |
 | Discriminative power | ≥1 real rule lands in *delete* or *rewrite* | all "keep" → add rules; if still nothing, grid lacks sensitivity at n=30 |
-| Independence (coarse) | ≥4 of 5 pairs: pair effect ≈ sum of singles, within CI noise | systematic super-additivity → cluster/joint testing needed before scaling |
+| Independence (coarse) | ≥4 of 5 pairs: each rule's delta unchanged under pair-ablation (cross-effect ≈ 0, within CI noise) | systematic cross-effects → cluster/joint testing needed before scaling |
 
 *Interpretation discipline:* at n=30, rates near a cell threshold flip between runs from sampling noise alone — only non-overlapping-CI flips count against the reliability gate.
 
