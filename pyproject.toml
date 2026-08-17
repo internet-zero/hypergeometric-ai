@@ -9,9 +9,13 @@ description = "Statistical certification and porting of agent configurations acr
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
+authors = [{ name = "Akshay Reddy" }]
 dependencies = [
     "pyyaml>=6.0",
 ]
+
+[project.urls]
+Repository = "https://github.com/internet-zero/hypergeometric-ai"
 
 [project.optional-dependencies]
 live = ["openai>=1.50"]

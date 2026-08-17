@@ -40,8 +40,9 @@ def test_live_small_grid(tmp_path: Path) -> None:
     rules, tools = v.load_rules(LOCAL / "rules.yaml")
     skills = v.load_skills(LOCAL / "skills")
     planted = v.build_planted_rules()
-    # Smoke scope: one cheap prompt rule + the load-bearing control.
-    subset = [next(r for r in rules if r.id == "R2-analysis-explanation-required"), planted[1]]
+    # Smoke scope: the first prompt-source rule + the load-bearing control —
+    # works with any local bundle, no dependence on specific rule ids.
+    subset = [next(r for r in rules if r.source == "prompt"), planted[1]]
     full_prompt = v.assemble_prompt(base_prompt, planted)
     for rule in subset:
         v.build_arms(rule, full_prompt, tools, skills)

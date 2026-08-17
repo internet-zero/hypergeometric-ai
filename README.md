@@ -42,3 +42,21 @@ Companion artifacts live in **[artifacts/](artifacts/)**:
 ## Status
 
 Design complete. Milestone 0 in progress: the **[hypergeometric](hypergeometric/)** package is the ablation harness — it runs the grid on any config (system prompt, MCP tool descriptions, skills) across two models, with planted-control self-tests, Wilson intervals, and McNemar pairing. Usage and layout in **[HARNESS.md](HARNESS.md)**.
+
+## Try it
+
+```bash
+poetry install --extras live       # python 3.11+
+poetry run hypergeometric --selftest                      # offline checker self-test
+poetry run hypergeometric --prompt examples/example.prompt.txt \
+    --rules examples/rules.example.yaml --dry-run         # print the plan, no API calls
+OPENAI_API_KEY=... poetry run hypergeometric \
+    --prompt examples/example.prompt.txt \
+    --rules examples/rules.example.yaml --probes 30       # run the real grid
+```
+
+The migration grid lands in `results/grid.md`; raw run records in `results/raw.jsonl`. Full CLI details, rule-file format, and how to point it at a private config: [HARNESS.md](HARNESS.md).
+
+## License
+
+[MIT](LICENSE)
