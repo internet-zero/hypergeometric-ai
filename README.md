@@ -47,6 +47,18 @@ Every number ships with a Wilson confidence interval, every A-vs-B comparison wi
 
 > **The name** comes from the hypergeometric distribution — a piece of statistics used when checking a sample and drawing conclusions about the whole. It reflects the project's rule: no claim without the math to back it.
 
+## Why ~200 probes
+
+The math is short enough to show. **Detection power** sizes the probe sets: if a rule were truly broken at violation rate $p$, the chance that $n$ independent probes all come back clean is $(1-p)^n$. Requiring that a grossly broken rule ($p \geq 10\%$) slips past with probability at most $10^{-9}$:
+
+$$n \;\geq\; \frac{\ln 10^{-9}}{\ln(1 - 0.10)} \;\approx\; 197 \quad\Longrightarrow\quad \sim 200 \text{ probes}$$
+
+**The namesake** handles finite archives: auditing $n$ of $N$ stored traces of which $K$ are bad, the probability of missing every bad one is hypergeometric —
+
+$$P[\text{miss all}] \;=\; \frac{\binom{N-K}{n}}{\binom{N}{n}} \qquad \text{e.g. } N{=}100,\ K{=}10,\ n{=}84: \ \frac{\binom{90}{84}}{\binom{100}{84}} \approx 4.6\times 10^{-10}$$
+
+— sampling without replacement is more informative, so fewer draws suffice than the binomial bound. And on the flip side, **certification** words the claims: $n$ clean probes bound the true violation rate at $\leq 3/n$ with 95% confidence (the rule of three) — 200 clean probes certify **≤ 1.5%**. Full treatment in [DESIGN.md §2.9](DESIGN.md).
+
 ## More
 
 Everything lives in **[DESIGN.md](DESIGN.md)** — the full design derived from first principles: eight forced moves → four laws → three phases → statistics → threats and assumptions → roadmap with the Milestone-0 protocol → decision log → glossary.
