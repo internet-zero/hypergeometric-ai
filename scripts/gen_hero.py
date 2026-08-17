@@ -54,7 +54,7 @@ rows = [
     # (rule, a, b, verdict, color, note, begin)
     ("R1-json-contract", "98 / 41", "99 / 96", "DELETE", BLUE, "dead weight", 3.4),
     ("R2-export-filter", "97 / 22", "71 / 19", "REWRITE", ORANGE, "regression", 3.9),
-    ("R3-word-limit", "88 / 30", "95 / 61", "KEEP", GREEN, "load-bearing", 4.4),
+    ("R3-missing-data", "93 / 55", "95 / 61", "KEEP", GREEN, "load-bearing", 4.4),
     ("planted-redundant", "control", "control", "DELETE ✓", GREEN, "", 4.9),
     ("planted-load-bearing", "control", "control", "KEEP ✓", GREEN, "", 5.2),
 ]
@@ -126,7 +126,7 @@ svg = f"""<svg width="860" height="600" viewBox="0 0 860 600" xmlns="http://www.
   <line x1="28" y1="196" x2="832" y2="196" stroke="#21262d" opacity="0"><set attributeName="opacity" to="1" begin="3.2s" fill="freeze"/></line>
   {chr(10).join('  ' + r for r in row_els)}
 
-  {reveal(366, 5.7, [(DIM, "controls sane · Wilson 95% CI · exact McNemar "), (CYAN, "p = 0.011"), (DIM, " · BH-corrected")])}
+  {reveal(366, 5.7, [(DIM, "controls sane · Wilson 95% CI · exact McNemar "), (CYAN, "p = 0.012"), (DIM, " · BH-corrected")])}
 
   <!-- math panel -->
   <g opacity="0">

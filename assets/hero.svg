@@ -24,11 +24,11 @@
   <line x1="28" y1="196" x2="832" y2="196" stroke="#21262d" opacity="0"><set attributeName="opacity" to="1" begin="3.2s" fill="freeze"/></line>
     <g opacity="0"><text x="28" y="214" fill="#e6edf3">R1-json-contract</text><text x="262" y="214" fill="#8b949e">98 / 41</text><text x="392" y="214" fill="#8b949e">99 / 96</text><text x="522" y="214" fill="#58a6ff">DELETE</text><text x="646" y="214" fill="#8b949e">dead weight</text><set attributeName="opacity" to="1" begin="3.4s" fill="freeze"/></g>
   <g opacity="0"><text x="28" y="241" fill="#e6edf3">R2-export-filter</text><text x="262" y="241" fill="#8b949e">97 / 22</text><text x="392" y="241" fill="#8b949e">71 / 19</text><text x="522" y="241" fill="#d29922">REWRITE</text><text x="646" y="241" fill="#8b949e">regression</text><set attributeName="opacity" to="1" begin="3.9s" fill="freeze"/></g>
-  <g opacity="0"><text x="28" y="268" fill="#e6edf3">R3-word-limit</text><text x="262" y="268" fill="#8b949e">88 / 30</text><text x="392" y="268" fill="#8b949e">95 / 61</text><text x="522" y="268" fill="#3fb950">KEEP</text><text x="646" y="268" fill="#8b949e">load-bearing</text><set attributeName="opacity" to="1" begin="4.4s" fill="freeze"/></g>
+  <g opacity="0"><text x="28" y="268" fill="#e6edf3">R3-missing-data</text><text x="262" y="268" fill="#8b949e">93 / 55</text><text x="392" y="268" fill="#8b949e">95 / 61</text><text x="522" y="268" fill="#3fb950">KEEP</text><text x="646" y="268" fill="#8b949e">load-bearing</text><set attributeName="opacity" to="1" begin="4.4s" fill="freeze"/></g>
   <g opacity="0"><text x="28" y="295" fill="#e6edf3">planted-redundant</text><text x="262" y="295" fill="#8b949e">control</text><text x="392" y="295" fill="#8b949e">control</text><text x="522" y="295" fill="#3fb950">DELETE ✓</text><set attributeName="opacity" to="1" begin="4.9s" fill="freeze"/></g>
   <g opacity="0"><text x="28" y="322" fill="#e6edf3">planted-load-bearing</text><text x="262" y="322" fill="#8b949e">control</text><text x="392" y="322" fill="#8b949e">control</text><text x="522" y="322" fill="#3fb950">KEEP ✓</text><set attributeName="opacity" to="1" begin="5.2s" fill="freeze"/></g>
 
-  <text x="28" y="366" opacity="0"><tspan fill="#8b949e">controls sane · Wilson 95% CI · exact McNemar </tspan><tspan fill="#79c0ff">p = 0.011</tspan><tspan fill="#8b949e"> · BH-corrected</tspan><set attributeName="opacity" to="1" begin="5.7s" fill="freeze"/></text>
+  <text x="28" y="366" opacity="0"><tspan fill="#8b949e">controls sane · Wilson 95% CI · exact McNemar </tspan><tspan fill="#79c0ff">p = 0.012</tspan><tspan fill="#8b949e"> · BH-corrected</tspan><set attributeName="opacity" to="1" begin="5.7s" fill="freeze"/></text>
 
   <!-- math panel -->
   <g opacity="0">
