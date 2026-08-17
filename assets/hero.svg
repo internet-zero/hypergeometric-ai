@@ -1,4 +1,4 @@
-<svg viewBox="0 0 860 600" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" font-size="15">
+<svg width="860" height="600" viewBox="0 0 860 600" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" font-size="15">
   <defs>
     <clipPath id="t0"><rect x="46" y="67" width="0" height="22"><animate attributeName="width" values="0;9;18;27;36;45;54;63;72;81;90;99;108;117;126;135;144;153;162;171;180;189;198;207;216;225;234;243;252;261;270;279;288;297;306;315;324;333;342;351;360;369;378;387;396;405;414;423;432;441;450;459;468" calcMode="discrete" begin="0.4s" dur="1.6s" fill="freeze"/></rect></clipPath>
   </defs>
